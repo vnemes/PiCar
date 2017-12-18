@@ -10,7 +10,7 @@
         android:id="@+id/btn_connection_status"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="ConnectionStatus"
+        android:text="ConnectionStatus:"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintHorizontal_bias="0.053"
         app:layout_constraintLeft_toLeftOf="parent"
@@ -20,10 +20,15 @@
 
     <SeekBar
         android:id="@+id/seek_acceleration"
-        android:layout_width="113dp"
-        android:layout_height="19dp"
+        android:layout_width="213dp"
+        android:layout_height="25dp"
+        android:layout_marginEnd="8dp"
         android:layout_marginStart="16dp"
-        android:layout_marginTop="28dp"
+        android:layout_marginTop="108dp"
+        android:max="255"
+        android:progress="0"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.551"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/btn_connection_status" />
 
@@ -40,5 +45,18 @@
         app:layout_constraintHorizontal_bias="0.553"
         app:layout_constraintStart_toEndOf="@+id/btn_connection_status"
         app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/tv_conn_stat"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:layout_marginStart="44dp"
+        android:layout_marginTop="8dp"
+        android:text="Disconnected"
+        app:layout_constraintBottom_toTopOf="@+id/seek_acceleration"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/btn_connection_status"
+        app:layout_constraintVertical_bias="0.0" />
 
 </android.support.constraint.ConstraintLayout>

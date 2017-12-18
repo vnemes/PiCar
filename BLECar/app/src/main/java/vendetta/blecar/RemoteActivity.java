@@ -24,6 +24,10 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
+import android.widget.SeekBar;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -34,31 +38,16 @@ import java.util.UUID;
 
 public class RemoteActivity extends Activity {
 
+    Button connectButton;
+    TextView connectTv;
+
+
 
     private final static String TAG = RemoteActivity.class.getSimpleName();
-
-    private BluetoothAdapter mBluetoothAdapter;
-    public static final int REQUEST_ENABLE_BT = 1;
     private static final int PERMISSION_REQUEST_COARSE_LOCATION = 1;
 
+    private BluetoothLEController mBluetoothLEController;
     private boolean isConnectAllowed = false;
-    private boolean mScanning = false;
-    private Handler mHandler = new Handler();
-
-    // Stops scanning after 10 seconds.
-    private static final long SCAN_PERIOD = 10000;
-
-    BluetoothGatt mBluetoothGatt;
-
-    public final static UUID MOVEMENT_SERVICE_UUID =
-            UUID.fromString("4fafc201-1fb5-459e-8fcc-c5c9c331914b");
-
-
-    private int mConnectionState = STATE_DISCONNECTED;
-
-    private static final int STATE_DISCONNECTED = 0;
-    private static final int STATE_CONNECTING = 1;
-    private static final int STATE_CONNECTED = 2;
 
 
     @Override
@@ -66,6 +55,31 @@ public class RemoteActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_remote);
 
+
+
+        connectButton = findViewById(R.id.btn_connect);
+        connectTv = findViewById(R.id.tv_conn_stat);
+        SeekBar simpleSeekBar = findViewById(R.id.seek_acceleration);
+
+        simpleSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                mBluetoothLEController.setSteering(progress);
+            }
+
+            public void onStartTrackingTouch(SeekBar seekBar) { }
+
+            public void onStopTrackingTouch(SeekBar seekBar) {
+                mBluetoothLEController.setSteering(seekBar.getProgress());
+            }
+        });
+
+
+        mBluetoothLEController = new BluetoothLEController(this);
+        requestPermissions();
+    }
+
+    private void requestPermissions() {
         if (this.checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             final AlertDialog.Builder builder = new AlertDialog.Builder(this);
             builder.setTitle("This app needs location access");
@@ -83,23 +97,6 @@ public class RemoteActivity extends Activity {
         }
     }
 
-    private void initBluetooth() {
-
-        // Initializes Bluetooth adapter.
-        final BluetoothManager bluetoothManager =
-                (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
-        mBluetoothAdapter = bluetoothManager.getAdapter();
-
-        // Ensures Bluetooth is available on the device and it is enabled. If not,
-        // displays a dialog requesting user permission to enable Bluetooth.
-        if (mBluetoothAdapter == null || !mBluetoothAdapter.isEnabled()) {
-            Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-            startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
-        }
-
-        scanLeDevice(true);
-    }
-
 
     @Override
     public void onRequestPermissionsResult(int requestCode,
@@ -113,7 +110,7 @@ public class RemoteActivity extends Activity {
                 } else {
                     final AlertDialog.Builder builder = new AlertDialog.Builder(this);
                     builder.setTitle("Functionality limited");
-                    builder.setMessage("Since location access has not been granted, this app will not be able to discover beacons when in the background.");
+                    builder.setMessage("Since location access has not been granted, this app will not be able to communicate with the Car.");
                     builder.setPositiveButton(android.R.string.ok, null);
                     builder.setOnDismissListener(new DialogInterface.OnDismissListener() {
                         @Override
@@ -127,130 +124,33 @@ public class RemoteActivity extends Activity {
         }
     }
 
-
-    private ScanCallback mLeScanCallback = new ScanCallback() {
-        @Override
-        public void onScanResult(int callbackType, ScanResult result) {
-            super.onScanResult(callbackType, result);
-            scanLeDevice(false);
-            mBluetoothGatt = result.getDevice().connectGatt(getApplicationContext(), true, mGattCallback);
-            Log.d(TAG, result.getDevice().toString());
-        }
-
-        @Override
-        public void onScanFailed(int errorCode) {
-            super.onScanFailed(errorCode);
-        }
-    };
-
-
-    private void scanLeDevice(final boolean enable) {
-
-        final BluetoothLeScanner bluetoothLeScanner = mBluetoothAdapter.getBluetoothLeScanner();
-
-        if (enable) {
-            // Stops scanning after a pre-defined scan period.
-            mHandler.postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    mScanning = false;
-
-                    bluetoothLeScanner.stopScan(mLeScanCallback);
-                }
-            }, SCAN_PERIOD);
-
-            mScanning = true;
-            ScanFilter.Builder mScanFilterBuilder = new ScanFilter.Builder();
-            mScanFilterBuilder.setDeviceName(getResources().getString(R.string.BLECarName));
-            List<ScanFilter> scanFilterList = new ArrayList<>();
-            scanFilterList.add(mScanFilterBuilder.build());
-            bluetoothLeScanner.startScan(scanFilterList, new ScanSettings.Builder().build(), mLeScanCallback);
-        } else {
-            mScanning = false;
-            bluetoothLeScanner.stopScan(mLeScanCallback);
-        }
+    public void setConnectionActive(){
+        connectButton.setClickable(false);
+        connectTv.setText("Connected");
+        Toast.makeText(this, "Connected to " + getResources().getString(R.string.BLECarName), Toast.LENGTH_LONG).show();
     }
 
-    private List<BluetoothGattService> mServices;
-    private List<BluetoothGattCharacteristic> mCharact;
-    Queue<BluetoothGattCharacteristic> qbgc = new LinkedList<>();
-    // Various callback methods defined by the BLE API.
-    private final BluetoothGattCallback mGattCallback =
-            new BluetoothGattCallback() {
-                @Override
-                public void onConnectionStateChange(BluetoothGatt gatt, int status,
-                                                    int newState) {
-                    if (newState == BluetoothProfile.STATE_CONNECTED) {
-                        mConnectionState = STATE_CONNECTED;
-                        Log.i(TAG, "Connected to GATT server.");
-                        Log.i(TAG, "Attempting to start service discovery:" +
-                                mBluetoothGatt.discoverServices());
+    public void setConnectionInactive(){
+        connectButton.setClickable(true);
+        connectTv.setText("Disconnected");
+        Toast.makeText(this, "Lost connection to the Car", Toast.LENGTH_LONG).show();
+    }
 
-                    } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
-                        mConnectionState = STATE_DISCONNECTED;
-                        Log.i(TAG, "Disconnected from GATT server.");
-                    }
-                }
-
-                @Override
-                // New services discovered
-                public void onServicesDiscovered(BluetoothGatt gatt, int status) {
-                    if (status == BluetoothGatt.GATT_SUCCESS) {
-                        // Services received here!
-                        Log.d(TAG, "Discovered services");
-                        mServices = gatt.getServices();
-                        for (BluetoothGattService bgs : mServices) {
-                            Log.d(TAG, bgs.getUuid().toString());
-                            if (bgs.getUuid().equals(MOVEMENT_SERVICE_UUID)) {
-                                mCharact = bgs.getCharacteristics();
-                                Log.d(TAG, "Discovered characteristics");
-                                for (BluetoothGattCharacteristic bgc : mCharact) {
-                                        // Init values here!
-                                    Log.d(TAG, bgc.getUuid().toString());
-                                    byte[] value = new byte[1];
-                                    value[0] = (byte) 0;
-                                    bgc.setValue(value);
-                                    qbgc.add(bgc);
-                                }
-
-                                if (!qbgc.isEmpty())
-                                    mBluetoothGatt.writeCharacteristic(qbgc.poll());
-                            }
-                        }
-                    } else {
-                        Log.w(TAG, "onServicesDiscovered received: " + status);
-                    }
-                }
-
-                @Override
-                // Result of a characteristic read operation
-                public void onCharacteristicRead(BluetoothGatt gatt,
-                                                 BluetoothGattCharacteristic characteristic,
-                                                 int status) {
-                    if (status == BluetoothGatt.GATT_SUCCESS) {
-                        // Read action here with characteristic here!
-                        Log.d(TAG, characteristic.toString());
-                    }
-                }
-
-                @Override
-                public void onCharacteristicWrite(BluetoothGatt gatt,
-                                                  BluetoothGattCharacteristic characteristic,
-                                                  int status) {
-                    if (status == BluetoothGatt.GATT_SUCCESS) {
-                        Log.d(TAG, "Written Characteristic "+characteristic.getUuid().toString()+" with value: "+characteristic.getValue());
-                        if (!qbgc.isEmpty())
-                            mBluetoothGatt.writeCharacteristic(qbgc.poll());
-                    }
-                }
-            };
 
 
     public void onConnectBtnPress(View v) {
-        Log.d(TAG, "Button pressed");
+        Log.d(TAG, "Attempting connection");
         if (isConnectAllowed)
-            initBluetooth();
+            new Thread(new Runnable() {
+                public void run() {
+                    mBluetoothLEController.attemptConnection();
+                }
+            }).start();
     }
 
-
+    @Override
+    public void onBackPressed() {
+        mBluetoothLEController.close();
+        finish();
+    }
 }
