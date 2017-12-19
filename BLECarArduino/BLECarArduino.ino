@@ -8,7 +8,6 @@
 #include <BLEServer.h>
 
 // See the following for generating UUIDs:
-
 // https://www.uuidgenerator.net/
 
 #define BLE_DEVICE_NAME              "BLECar"
@@ -58,7 +57,9 @@ class SteeringCallback: public BLECharacteristicCallbacks {
         Serial.print("\t\t | STEERING value: ");
         for (int i = 0; i < value.length(); i++){
           Serial.println(int(value[i]));
-          if (value[i] & 0x80){ // CHECK HERE IF *2 CORRECTION IS STILL NEEDED!!!!
+          if (value[i] & 0x80){ 
+              //TODO -  Check if *2 correction still needs to be applied 
+              // (torque of the DC Motor responsible with steering)
             ledcWrite(3,value[i]);
             ledcWrite(4,GROUND);
           } else {
@@ -73,13 +74,8 @@ class SteeringCallback: public BLECharacteristicCallbacks {
 void setup() {
   Serial.begin(115200);
 
-//  Serial.println("1- Download and install an BLE scanner app in your phone");
-//  Serial.println("2- Scan for BLE devices in the app");
-//  Serial.println("3- Connect to MyESP32");
-//  Serial.println("4- Go to CUSTOM CHARACTERISTIC in CUSTOM SERVICE and write something");
-//  Serial.println("5- See the magic =)");
-    Serial.print(millis());
-    Serial.println("\t\t | BLECar started");
+  Serial.print(millis());
+  Serial.println("\t\t | BLECar started");
 
   // Initialize DC Motor pins for PWM
   ledcAttachPin(SPEED_PIN_HIGH,1);
@@ -127,53 +123,6 @@ void setup() {
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
+ 
   delay(2000);
 }
-
-
-
-
-
-
-
-/**
- * USE FOR PWM MANIPULATION
- */
-
-
-//// use first channel of 16 channels (started from zero)
-//#define LEDC_CHANNEL_0     0
-//
-//// use 13 bit precission for LEDC timer
-//#define LEDC_TIMER_13_BIT  13
-//
-//// use 5000 Hz as a LEDC base frequency
-//#define LEDC_BASE_FREQ     5000
-//
-//// fade LED PIN (replace with LED_BUILTIN constant for built-in LED)
-//#define LED_PIN            5
-//
-//int brightness = 0;    // how bright the LED is
-//int fadeAmount = 5;    // how many points to fade the LED by
-//
-//// Arduino like analogWrite
-//// value has to be between 0 and valueMax
-//void ledcAnalogWrite(uint8_t channel, uint32_t value, uint32_t valueMax = 255) {
-//  // calculate duty, 8191 from 2 ^ 13 - 1
-//  uint32_t duty = (8191 / valueMax) * min(value, valueMax);
-//
-//  // write duty to LEDC
-//  ledcWrite(channel, duty);
-//}
-//
-//void setup() {
-//  // Setup timer and attach timer to a led pin
-//  ledcSetup(LEDC_CHANNEL_0, LEDC_BASE_FREQ, LEDC_TIMER_13_BIT);
-//  ledcAttachPin(LED_PIN, LEDC_CHANNEL_0);
-//}
-//
-//void loop() {
-//  // set the brightness on LEDC channel 0
-//  ledcAnalogWrite(LEDC_CHANNEL_0, brightness);
-
