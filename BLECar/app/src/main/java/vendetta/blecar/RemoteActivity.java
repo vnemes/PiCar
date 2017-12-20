@@ -3,43 +3,22 @@ package vendetta.blecar;
 import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothDevice;
-import android.bluetooth.BluetoothGatt;
-import android.bluetooth.BluetoothGattCallback;
-import android.bluetooth.BluetoothGattCharacteristic;
-import android.bluetooth.BluetoothGattService;
-import android.bluetooth.BluetoothManager;
-import android.bluetooth.BluetoothProfile;
-import android.bluetooth.le.BluetoothLeScanner;
-import android.bluetooth.le.ScanCallback;
-import android.bluetooth.le.ScanFilter;
-import android.bluetooth.le.ScanResult;
-import android.bluetooth.le.ScanSettings;
-import android.content.Context;
 import android.content.DialogInterface;
-import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
-import android.os.Handler;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.PriorityQueue;
-import java.util.Queue;
-import java.util.UUID;
+import io.github.controlwear.virtual.joystick.android.JoystickView;
 
 public class RemoteActivity extends Activity {
 
     Button connectButton;
     TextView connectTv;
+    JoystickView joystickSpeed;
 
 
 
@@ -59,8 +38,9 @@ public class RemoteActivity extends Activity {
 
         connectButton = findViewById(R.id.btn_connect);
         connectTv = findViewById(R.id.tv_conn_stat);
-        SeekBar simpleSeekBar = findViewById(R.id.seek_acceleration);
 
+        // Seek bar for controlling steering angle
+        SeekBar simpleSeekBar = findViewById(R.id.seek_acceleration);
         simpleSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
 
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
@@ -74,8 +54,24 @@ public class RemoteActivity extends Activity {
             }
         });
 
+        // Joystick for controlling speed
+        joystickSpeed = findViewById(R.id.joystick_speed);
+        joystickSpeed.setOnMoveListener(new JoystickView.OnMoveListener() {
+            @Override
+            public void onMove(int angle, int strength) {
+                mBluetoothLEController.setSpeed(angle,strength);
+                if (angle == strength)
+                    Log.d(TAG,"GOT A RESET");
+            }
 
+
+        },200); // 5 times per second
+        joystickSpeed.setEnabled(false);
+
+
+        // initialize BLE controller with this activity
         mBluetoothLEController = new BluetoothLEController(this);
+
         requestPermissions();
     }
 
@@ -126,12 +122,14 @@ public class RemoteActivity extends Activity {
 
     public void setConnectionActive(){
         connectButton.setClickable(false);
+        joystickSpeed.setEnabled(true);
         connectTv.setText("Connected");
         Toast.makeText(this, "Connected to " + getResources().getString(R.string.BLECarName), Toast.LENGTH_LONG).show();
     }
 
     public void setConnectionInactive(){
         connectButton.setClickable(true);
+        joystickSpeed.setEnabled(false);
         connectTv.setText("Disconnected");
         Toast.makeText(this, "Lost connection to the Car", Toast.LENGTH_LONG).show();
     }

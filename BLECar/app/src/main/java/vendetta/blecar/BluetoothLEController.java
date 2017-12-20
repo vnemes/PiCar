@@ -59,7 +59,6 @@ public class BluetoothLEController {
             UUID.fromString("2eabb1e1-ae0f-4eb8-bfdc-f564ad55f359");
 
 
-
     private int mConnectionState = STATE_DISCONNECTED;
 
     private static final int STATE_DISCONNECTED = 0;
@@ -146,7 +145,7 @@ public class BluetoothLEController {
                                                  int status) {
                     if (status == BluetoothGatt.GATT_SUCCESS) {
                         // Read action here with characteristic here!
-                        Log.d(TAG, "Read Characteristic "+characteristic.toString());
+                        Log.d(TAG, "Read Characteristic " + characteristic.toString());
                     }
                 }
 
@@ -158,44 +157,70 @@ public class BluetoothLEController {
                         /**
                          * debug:  Log.d(TAG, "Written Characteristic "+characteristic.getUuid().toString()+" with value: "+characteristic.getValue());
                          */
-                        if (!bleTxMessageQueue.isEmpty())
-                            mBluetoothGatt.writeCharacteristic(bleTxMessageQueue.poll());
+
+                        // remove command from queue only after the callback for successful write was triggered!
+                        synchronized (bleTxMessageQueue) {
+                            //bleTxMessageQueue.poll();
+                            if (!bleTxMessageQueue.isEmpty()) {
+                                mBluetoothGatt.writeCharacteristic(bleTxMessageQueue.poll());
+                            }
+                        }
                     }
                 }
 
-               public void onReadRemoteRssi (BluetoothGatt gatt,
-                                       int rssi,
-                                       int status) {
+                public void onReadRemoteRssi(BluetoothGatt gatt,
+                                             int rssi,
+                                             int status) {
                     //TODO display dBm for active connections
                 }
             };
-
-
-
 
 
     public BluetoothLEController(RemoteActivity mActivity) {
         this.mActivity = mActivity;
     }
 
-    public void setSpeed(int amount){
+    public void setSpeed(int amount) {
         byte[] value = new byte[1];
-        value[0] = (byte)amount;
+        value[0] = (byte) amount;
         speedCharacteristic.setValue(value);
         if (bleTxMessageQueue.isEmpty())
             mBluetoothGatt.writeCharacteristic(speedCharacteristic);
         else bleTxMessageQueue.add(speedCharacteristic);
     }
 
-    public void setSteering(int amount){
+
+    public void setSpeed(int angle, int strength) {
+        /**
+         * [0, 100] -> [0, 255]
+         * m = 255 / 100 = 51 / 10
+         * y = m * (x - 0 ) + 0
+         */
+        int amount = (51 * strength) / 10;
+        byte val = (byte) ((byte) (amount) >> 2);
+        if (Math.sin((double) angle) >= 0) {
+            val = (byte) (val | (byte) 0x80);
+        } else {
+            val = (byte) (val & (byte) 0x7F);
+        }
+
         byte[] value = new byte[1];
-        value[0] = (byte)amount;
+        value[0] = val;
+        speedCharacteristic.setValue(value);
+        if (bleTxMessageQueue.isEmpty())
+            if (!mBluetoothGatt.writeCharacteristic(speedCharacteristic))
+                Log.d(TAG, "FALSE!");
+        bleTxMessageQueue.add(speedCharacteristic);
+    }
+
+    public void setSteering(int amount) {
+        byte[] value = new byte[1];
+        value[0] = (byte) amount;
         steeringCharacteristic.setValue(value);
         if (bleTxMessageQueue.isEmpty())
             mBluetoothGatt.writeCharacteristic(steeringCharacteristic);
         else bleTxMessageQueue.add(steeringCharacteristic);
     }
-
 
 
     public void attemptConnection() {
