@@ -35,13 +35,14 @@ class SpeedCallback: public BLECharacteristicCallbacks {
         Serial.print(millis());
         Serial.print("\t\t | SPEED value: ");
         for (int i = 0; i < value.length(); i++){
-          Serial.println(int(value[i]));
           if (value[i] & 0x80){
             ledcWrite(1,value[i]<<1);
             ledcWrite(2,GROUND);
+            Serial.println(int((value[i] & (~0x80))<<1));
           } else {
             ledcWrite(1,GROUND);
             ledcWrite(2,value[i]<<1);
+            Serial.println(-int(value[i]<<1));
           }
         }
       }
@@ -56,15 +57,16 @@ class SteeringCallback: public BLECharacteristicCallbacks {
         Serial.print(millis());
         Serial.print("\t\t | STEERING value: ");
         for (int i = 0; i < value.length(); i++){
-          Serial.println(int(value[i]));
           if (value[i] & 0x80){ 
               //TODO -  Check if *2 correction still needs to be applied 
               // (torque of the DC Motor responsible with steering)
             ledcWrite(3,value[i]);
             ledcWrite(4,GROUND);
+            Serial.println(int((value[i] & (~0x80))<<1));
           } else {
             ledcWrite(3,GROUND);
             ledcWrite(4,value[i]);
+            Serial.println(-int(value[i]<<1));
           }
         }
       }
