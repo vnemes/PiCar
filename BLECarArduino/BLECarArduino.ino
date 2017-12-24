@@ -17,13 +17,14 @@
 #define SPEED_CHARACTERISTIC_UUID    "2eabb1e1-ae0f-4eb8-bfdc-f564ad55f359"
 
 #define GROUND                        0x00
+#define MINIMUM_TORQUE_CORRECTION     0x80
 
-#define SPEED_PIN_HIGH                5
-#define SPEED_PIN_LOW                 4
+#define SPEED_PIN_HIGH                19
+#define SPEED_PIN_LOW                 18
 
 
-#define STEERING_PIN_HIGH             33
-#define STEERING_PIN_LOW              27
+#define STEERING_PIN_HIGH             17
+#define STEERING_PIN_LOW              16
 
 
 
@@ -36,13 +37,17 @@ class SpeedCallback: public BLECharacteristicCallbacks {
         Serial.print("\t\t | SPEED value: ");
         for (int i = 0; i < value.length(); i++){
           if (value[i] & 0x80){
-            ledcWrite(1,value[i]<<1);
+            if (value[i] & 0x7F) // do not apply correction for 0
+              ledcWrite(1,(value[i] & (~0x80)) + MINIMUM_TORQUE_CORRECTION);
+            else ledcWrite(1,GROUND);
             ledcWrite(2,GROUND);
-            Serial.println(int((value[i] & (~0x80))<<1));
+            Serial.println(int((value[i] & (~0x80)) + MINIMUM_TORQUE_CORRECTION));
           } else {
+            if (value[i] & 0x7F) // do not apply correction for 0
+              ledcWrite(2,value[i] + MINIMUM_TORQUE_CORRECTION);
+            else ledcWrite(2,GROUND); 
             ledcWrite(1,GROUND);
-            ledcWrite(2,value[i]<<1);
-            Serial.println(-int(value[i]<<1));
+            Serial.println(-int(value[i] + MINIMUM_TORQUE_CORRECTION));
           }
         }
       }
@@ -60,12 +65,12 @@ class SteeringCallback: public BLECharacteristicCallbacks {
           if (value[i] & 0x80){ 
               //TODO -  Check if *2 correction still needs to be applied 
               // (torque of the DC Motor responsible with steering)
-            ledcWrite(3,value[i]);
+            ledcWrite(3,(value[i] & (~0x80))<<1);
             ledcWrite(4,GROUND);
             Serial.println(int((value[i] & (~0x80))<<1));
           } else {
             ledcWrite(3,GROUND);
-            ledcWrite(4,value[i]);
+            ledcWrite(4,(value[i] & (~0x80))<<1);
             Serial.println(-int(value[i]<<1));
           }
         }
@@ -91,8 +96,8 @@ void setup() {
   ledcSetup(2, 22000, 8);
   ledcSetup(3, 22000, 8); // 22 kHz PWM, 8-bit resolution
   ledcSetup(4, 22000, 8);
-  
-  
+
+
   BLEDevice::init(BLE_DEVICE_NAME);
   BLEServer *pServer = BLEDevice::createServer();
 
