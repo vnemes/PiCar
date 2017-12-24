@@ -18,7 +18,7 @@ public class RemoteActivity extends Activity {
 
     Button connectButton;
     TextView connectTv;
-    JoystickView joystickSpeed;
+    JoystickView joystickSpeed, joystickSteering;
 
 
 
@@ -67,6 +67,22 @@ public class RemoteActivity extends Activity {
 
         },200); // 5 times per second
         joystickSpeed.setEnabled(false);
+
+
+        // Joystick for controlling steering
+        joystickSteering = findViewById(R.id.joystick_steering);
+        joystickSteering.setOnMoveListener(new JoystickView.OnMoveListener() {
+            @Override
+            public void onMove(int angle, int strength) {
+                mBluetoothLEController.setSteering(angle,strength);
+                if (angle == strength)
+                    Log.d(TAG,"GOT A RESET");
+            }
+
+
+        },200); // 5 times per second
+        joystickSteering.setEnabled(false);
+
 
 
         // initialize BLE controller with this activity
@@ -123,6 +139,7 @@ public class RemoteActivity extends Activity {
     public void setConnectionActive(){
         connectButton.setClickable(false);
         joystickSpeed.setEnabled(true);
+        joystickSteering.setEnabled(true);
         connectTv.setText("Connected");
         Toast.makeText(this, "Connected to " + getResources().getString(R.string.BLECarName), Toast.LENGTH_LONG).show();
     }
@@ -130,6 +147,7 @@ public class RemoteActivity extends Activity {
     public void setConnectionInactive(){
         connectButton.setClickable(true);
         joystickSpeed.setEnabled(false);
+        joystickSteering.setEnabled(false);
         connectTv.setText("Disconnected");
         Toast.makeText(this, "Lost connection to the Car", Toast.LENGTH_LONG).show();
     }

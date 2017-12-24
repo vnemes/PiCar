@@ -192,12 +192,12 @@ public class BluetoothLEController {
 
     public void setSpeed(int angle, int strength) {
         /**
-         * [0, 100] -> [0, 255]
-         * m = 255 / 100 = 51 / 10
+         * [0, 100] -> [0, 127]
+         * m = 127 / 100
          * y = m * (x - 0 ) + 0
          */
-        int amount = (51 * strength) / 10;
-        byte val = (byte) ((byte) (amount) >> 2);
+        int amount = (127 * strength) / 100;
+        byte val = (byte) amount;
         if (Math.sin((double) angle) >= 0) {
             val = (byte) (val | (byte) 0x80);
         } else {
@@ -212,6 +212,30 @@ public class BluetoothLEController {
                 Log.d(TAG, "FALSE!");
         bleTxMessageQueue.add(speedCharacteristic);
     }
+
+    public void setSteering(int angle, int strength) {
+        /**
+         * [0, 100] -> [0, 127]
+         * m = 127 / 100
+         * y = m * (x - 0 ) + 0
+         */
+        int amount = (127 * strength) / 100;
+        byte val = (byte) amount;
+        if (Math.sin((double) angle) >= 0) {
+            val = (byte) (val | (byte) 0x80);
+        } else {
+            val = (byte) (val & (byte) 0x7F);
+        }
+
+        byte[] value = new byte[1];
+        value[0] = val;
+        steeringCharacteristic.setValue(value);
+        if (bleTxMessageQueue.isEmpty())
+            if (!mBluetoothGatt.writeCharacteristic(steeringCharacteristic))
+                Log.d(TAG, "FALSE!");
+        bleTxMessageQueue.add(steeringCharacteristic);
+    }
+
 
     public void setSteering(int amount) {
         byte[] value = new byte[1];
