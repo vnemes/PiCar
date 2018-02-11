@@ -1,8 +1,12 @@
 <resources>
 
     <!-- Base application theme. -->
-    <style name="AppTheme" parent="android:Theme.Material.Light.DarkActionBar">
+    <style name="AppTheme" parent="BLECarTheme">
         <!-- Customize your theme here. -->
+    </style>
+
+    <style name="BLECarTheme" parent="android:Theme.Material.NoActionBar" >
+        <item name="android:colorAccent">@android:color/holo_red_dark</item>
     </style>
 
 </resources>

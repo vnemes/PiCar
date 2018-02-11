@@ -32,7 +32,10 @@ import java.util.UUID;
 public class BluetoothLEController {
 
     private final static String TAG = RemoteActivity.class.getSimpleName();
-    RemoteActivity mActivity;
+    private RemoteActivity mActivity;
+
+    private int maxSpeed;
+    private final static int MAX_SPEED_INIT = 50; // 50% maximum speed
 
     private Queue<BluetoothGattCharacteristic> bleTxMessageQueue = new LinkedList<>();
 
@@ -77,6 +80,7 @@ public class BluetoothLEController {
         @Override
         public void onScanFailed(int errorCode) {
             super.onScanFailed(errorCode);
+            Log.d(TAG, "Bluetooth scan failed!");
         }
     };
 
@@ -178,15 +182,25 @@ public class BluetoothLEController {
 
     public BluetoothLEController(RemoteActivity mActivity) {
         this.mActivity = mActivity;
+        maxSpeed = MAX_SPEED_INIT;
     }
 
-    public void setSpeed(int amount) {
+    public void setSteeringByStrength(int angle, int strength) {
+        int stVal = strength != 0 ? (int) (strength * Math.cos(Math.toRadians(angle))) : 0;
+        int amount = (127 * Math.abs(stVal)) / 100;
+        byte val = (byte) amount;
+        if (stVal < 0) {
+            val = (byte) (val & (byte) 0x7F);
+        } else {
+            val = (byte) (val | (byte) 0x80);
+        }
+        mActivity.updateCrtSteeringTV(stVal);
         byte[] value = new byte[1];
-        value[0] = (byte) amount;
-        speedCharacteristic.setValue(value);
+        value[0] = val;
+        steeringCharacteristic.setValue(value);
         if (bleTxMessageQueue.isEmpty())
-            mBluetoothGatt.writeCharacteristic(speedCharacteristic);
-        else bleTxMessageQueue.add(speedCharacteristic);
+            mBluetoothGatt.writeCharacteristic(steeringCharacteristic);
+        bleTxMessageQueue.add(steeringCharacteristic);
     }
 
 
@@ -196,54 +210,57 @@ public class BluetoothLEController {
          * m = 127 / 100
          * y = m * (x - 0 ) + 0
          */
+        strength = strength < maxSpeed ? strength : maxSpeed;
         int amount = (127 * strength) / 100;
         byte val = (byte) amount;
-        if (Math.sin((double) angle) >= 0) {
+        if (Math.sin(Math.toRadians(angle)) >= 0) {
             val = (byte) (val | (byte) 0x80);
+            mActivity.updateCrtSpeedTV(strength);
         } else {
             val = (byte) (val & (byte) 0x7F);
+            mActivity.updateCrtSpeedTV(-strength);
         }
 
         byte[] value = new byte[1];
         value[0] = val;
         speedCharacteristic.setValue(value);
         if (bleTxMessageQueue.isEmpty())
-            if (!mBluetoothGatt.writeCharacteristic(speedCharacteristic))
-                Log.d(TAG, "FALSE!");
+            mBluetoothGatt.writeCharacteristic(speedCharacteristic);
         bleTxMessageQueue.add(speedCharacteristic);
     }
 
-    public void setSteering(int angle, int strength) {
+    public void setSteeringByAngle(int angle, int strength) {
         /**
          * [0, 100] -> [0, 127]
          * m = 127 / 100
          * y = m * (x - 0 ) + 0
          */
-        int amount = (127 * strength) / 100;
+
+        int stVal = strength != 0 ? (int) (100 * Math.cos(Math.toRadians(angle))) : 0;
+        int amount = (127 * Math.abs(stVal)) / 100;
         byte val = (byte) amount;
-        if (Math.sin((double) angle) >= 0) {
-            val = (byte) (val | (byte) 0x80);
-        } else {
+        if (stVal < 0) {
             val = (byte) (val & (byte) 0x7F);
+        } else {
+            val = (byte) (val | (byte) 0x80);
         }
+        mActivity.updateCrtSteeringTV(stVal);
+//        int amount = (127 * strength) / 100;
+//        byte val = (byte) amount;
+//        if (Math.sin((double) angle) >= 0) {
+//            val = (byte) (val | (byte) 0x80);
+//            mActivity.updateCrtSteeringTV(strength);
+//        } else {
+//            val = (byte) (val & (byte) 0x7F);
+//            mActivity.updateCrtSteeringTV(-strength);
+//        }
 
         byte[] value = new byte[1];
         value[0] = val;
         steeringCharacteristic.setValue(value);
         if (bleTxMessageQueue.isEmpty())
-            if (!mBluetoothGatt.writeCharacteristic(steeringCharacteristic))
-                Log.d(TAG, "FALSE!");
-        bleTxMessageQueue.add(steeringCharacteristic);
-    }
-
-
-    public void setSteering(int amount) {
-        byte[] value = new byte[1];
-        value[0] = (byte) amount;
-        steeringCharacteristic.setValue(value);
-        if (bleTxMessageQueue.isEmpty())
             mBluetoothGatt.writeCharacteristic(steeringCharacteristic);
-        else bleTxMessageQueue.add(steeringCharacteristic);
+        bleTxMessageQueue.add(steeringCharacteristic);
     }
 
 
@@ -274,8 +291,10 @@ public class BluetoothLEController {
             mHandler.postDelayed(new Runnable() {
                 @Override
                 public void run() {
-                    mScanning = false;
-
+                    if (mScanning) {
+                        mActivity.postScanFailed();
+                        mScanning = false;
+                    }
                     bluetoothLeScanner.stopScan(mLeScanCallback);
                 }
             }, SCAN_PERIOD);
@@ -290,6 +309,10 @@ public class BluetoothLEController {
             mScanning = false;
             bluetoothLeScanner.stopScan(mLeScanCallback);
         }
+    }
+
+    public void setMaxSpeed(int value) {
+        this.maxSpeed = value;
     }
 
     public void close() {
