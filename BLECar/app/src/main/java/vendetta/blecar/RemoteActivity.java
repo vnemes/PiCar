@@ -216,7 +216,7 @@ public class RemoteActivity extends Activity {
         crtSpeedValTV.setVisibility(View.VISIBLE);
         crtSteeringTV.setVisibility(View.VISIBLE);
         crtSteeringValTV.setVisibility(View.VISIBLE);
-        Toast.makeText(this, "Connected to " + getResources().getString(R.string.BLECarName), Toast.LENGTH_LONG).show();
+        Toast.makeText(this, "Connected to " + getResources().getString(R.string.PiCarMAC), Toast.LENGTH_LONG).show();
     }
 
     public void setConnectionInactive() {
@@ -233,7 +233,7 @@ public class RemoteActivity extends Activity {
         crtSpeedValTV.setVisibility(View.INVISIBLE);
         crtSteeringTV.setVisibility(View.INVISIBLE);
         crtSteeringValTV.setVisibility(View.INVISIBLE);
-        Toast.makeText(this, "Lost connection to the BLECar", Toast.LENGTH_LONG).show();
+        Toast.makeText(this, "Lost connection to " + getResources().getString(R.string.PiCarMAC), Toast.LENGTH_LONG).show();
     }
 
     private void updateMaxSpeed(int value) {
@@ -242,7 +242,7 @@ public class RemoteActivity extends Activity {
     }
 
     public void postScanFailed(){
-        Toast.makeText(this, "Could not find the BLECar", Toast.LENGTH_LONG).show();
+        Toast.makeText(this, "Could not find " + getResources().getString(R.string.PiCarMAC), Toast.LENGTH_LONG).show();
         pbConnect.setVisibility(View.INVISIBLE);
     }
 

@@ -49,7 +49,7 @@ public class BluetoothLEController {
     private BluetoothGattCharacteristic speedCharacteristic = null;
 
     // Stops scanning after 10 seconds.
-    private static final long SCAN_PERIOD = 10000;
+    private static final long SCAN_PERIOD = 20000;
 
 
     private final static UUID MOVEMENT_SERVICE_UUID =
@@ -68,13 +68,20 @@ public class BluetoothLEController {
     private static final int STATE_CONNECTING = 1;
     private static final int STATE_CONNECTED = 2;
 
+    private int lastSpeedStr = 0;
+    private int lastSpeedAngle = 0;
+    private int lastSteerStr = 0;
+    private int lastSteerAngl = 0;
+
+
+
     private ScanCallback mLeScanCallback = new ScanCallback() {
         @Override
         public void onScanResult(int callbackType, ScanResult result) {
             super.onScanResult(callbackType, result);
             scanLeDevice(false);
-            mBluetoothGatt = result.getDevice().connectGatt(mActivity.getApplicationContext(), true, mGattCallback);
-            Log.d(TAG, result.getDevice().toString());
+            mBluetoothGatt = result.getDevice().connectGatt(mActivity.getApplicationContext(), false, mGattCallback);
+            Log.d(TAG, result.getDevice().toString() + " " + result.getDevice().getName());
         }
 
         @Override
@@ -186,6 +193,12 @@ public class BluetoothLEController {
     }
 
     public void setSteeringByStrength(int angle, int strength) {
+
+        if (angle == lastSteerAngl && strength == lastSteerStr)
+            return;
+        lastSteerAngl = angle;
+        lastSteerStr = strength;
+
         int stVal = strength != 0 ? (int) (strength * Math.cos(Math.toRadians(angle))) : 0;
         int amount = (127 * Math.abs(stVal)) / 100;
         byte val = (byte) amount;
@@ -210,7 +223,14 @@ public class BluetoothLEController {
          * m = 127 / 100
          * y = m * (x - 0 ) + 0
          */
+
         strength = strength < maxSpeed ? strength : maxSpeed;
+
+        if (strength == lastSpeedStr && angle == lastSpeedAngle)
+            return;
+        lastSpeedStr = strength;
+        lastSpeedAngle = angle;
+
         int amount = (127 * strength) / 100;
         byte val = (byte) amount;
         if (Math.sin(Math.toRadians(angle)) >= 0) {
@@ -227,6 +247,8 @@ public class BluetoothLEController {
         if (bleTxMessageQueue.isEmpty())
             mBluetoothGatt.writeCharacteristic(speedCharacteristic);
         bleTxMessageQueue.add(speedCharacteristic);
+
+        Log.d(TAG,"wrote speed "+val);
     }
 
     public void setSteeringByAngle(int angle, int strength) {
@@ -235,6 +257,11 @@ public class BluetoothLEController {
          * m = 127 / 100
          * y = m * (x - 0 ) + 0
          */
+
+        if (angle == lastSteerAngl && strength == lastSteerStr)
+            return;
+        lastSteerAngl = angle;
+        lastSteerStr = strength;
 
         int stVal = strength != 0 ? (int) (100 * Math.cos(Math.toRadians(angle))) : 0;
         int amount = (127 * Math.abs(stVal)) / 100;
@@ -301,7 +328,8 @@ public class BluetoothLEController {
 
             mScanning = true;
             ScanFilter.Builder mScanFilterBuilder = new ScanFilter.Builder();
-            mScanFilterBuilder.setDeviceName(mActivity.getResources().getString(R.string.BLECarName));
+            mScanFilterBuilder.setDeviceAddress(mActivity.getResources().getString(R.string.PiCarMAC));
+//            mScanFilterBuilder.setDeviceName("vendettapi");
             List<ScanFilter> scanFilterList = new ArrayList<>();
             scanFilterList.add(mScanFilterBuilder.build());
             bluetoothLeScanner.startScan(scanFilterList, new ScanSettings.Builder().build(), mLeScanCallback);
