@@ -1,4 +1,4 @@
 <resources>
     <string name="app_name">BLECar</string>
-    <string name="BLECarName">BLECar</string>
+    <string name="PiCarMAC">B8:27:EB:FB:EC:A4</string>
 </resources>
