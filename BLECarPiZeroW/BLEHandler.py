@@ -24,9 +24,8 @@ class SteeringChrc(Characteristic):
             service)
 
     def WriteValue(self, value, options):
-        print('SteeringCharacteristic Write: ' + repr(value))
-        car_setsteering(value[:1])
-        #set_display_row(self.display, self.row)
+        #print('SteeringCharacteristic Write: ' + repr(value))
+        car_setsteering(value[0])
 
 
 class SpeedChrc(Characteristic):
@@ -40,9 +39,8 @@ class SpeedChrc(Characteristic):
             service)
 
     def WriteValue(self, value, options):
-        print('SpeedCharacteristic Write: ' + repr(value))
-        car_setspeed(value[:1])
-        # set_display_row(self.display, self.row)
+        #print('SpeedCharacteristic Write: ' + repr(value))
+        car_setspeed(value[0])
 
 
 class MovementService(Service):
@@ -132,7 +130,10 @@ def main():
     try:
         mainloop.run()
     except KeyboardInterrupt:
+
         car_cleanup()
+        # TODO add application & advertisement closing handler
+        mainloop.quit()
 
 
 if __name__ == '__main__':
