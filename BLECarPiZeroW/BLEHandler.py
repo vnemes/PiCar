@@ -19,14 +19,12 @@ class SteeringChrc(Characteristic):
     def __init__(self, bus, index, service):
         Characteristic.__init__(
             self, bus, index,
-            self.STEERING_UUID,  # use the row number to build the UUID
+            self.STEERING_UUID,
             ['write'],
             service)
 
     def WriteValue(self, value, options):
-        print('SteeringCharacteristic Write: ' + repr(value))
-        car_setsteering(value[:1])
-        #set_display_row(self.display, self.row)
+        car_setsteering(value[0], value[1])
 
 
 class SpeedChrc(Characteristic):
@@ -40,10 +38,7 @@ class SpeedChrc(Characteristic):
             service)
 
     def WriteValue(self, value, options):
-        print('SpeedCharacteristic Write: ' + repr(value))
-        car_setspeed(value[:1])
-        # set_display_row(self.display, self.row)
-
+        car_setspeed(value[0],value[1])
 
 class MovementService(Service):
     MVMT_SVC_UUID = '4fafc201-1fb5-459e-8fcc-c5c9c331914b'
