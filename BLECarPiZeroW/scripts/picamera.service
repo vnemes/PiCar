@@ -1,0 +1,11 @@
+[Unit]
+Description=Video Streaming service using PiCamera
+After=network.target
+
+[Service]
+User=root
+Group=pidevs
+ExecStart=/usr/bin/picamera_start
+
+[Install]
+WantedBy=multi-user.target
