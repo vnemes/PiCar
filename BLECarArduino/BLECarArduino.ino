@@ -41,12 +41,12 @@
 #define GROUND                        0x00
 #define MINIMUM_TORQUE_CORRECTION     0x80
 
-#define SPEED_PIN_HIGH                19
-#define SPEED_PIN_LOW                 18
+#define SPEED_PIN_HIGH                19 //brown   
+#define SPEED_PIN_LOW                 18 //white
 
 
-#define STEERING_PIN_HIGH             26 //17
-#define STEERING_PIN_LOW              25 //16
+#define STEERING_PIN_HIGH             26 //green
+#define STEERING_PIN_LOW              25 //yellow
 
 
 
@@ -139,8 +139,8 @@ const int TFT_CS = 5;
 //DIN <- MOSI 23
 //CLK <- SCK 18
 
-#define ssid1        "Vendetta OnePlus 5"
-#define password1    "<Edited out>"
+#define ssid1        "Vendetta5"
+#define password1    "ThisNetworkIs$ecur3;"
 
 OV7670 *camera;
 
@@ -277,7 +277,7 @@ void setup()
       Serial.println(WiFi.localIP());
   }
   
-  camera = new OV7670(OV7670::Mode::QQVGA_RGB565, SIOD, SIOC, VSYNC, HREF, XCLK, PCLK, D0, D1, D2, D3, D4, D5, D6, D7);
+  camera = new OV7670(OV7670::Mode::QQQVGA_RGB565, SIOD, SIOC, VSYNC, HREF, XCLK, PCLK, D0, D1, D2, D3, D4, D5, D6, D7);
   BMP::construct16BitHeader(bmpHeader, camera->xres, camera->yres);
   
   server.begin();
