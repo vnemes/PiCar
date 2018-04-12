@@ -15,6 +15,10 @@
 
 The overview of the system is depicted in **Figure 1**.
 ![Figure 1](Docs/Figure1.png?raw=true "Figure 1")
+<p align="center">
+  <i><b>Figure 1 - System Overview Diagram</b></i>
+</p>    
+
 **Car Controller subsystem** is responsible with controlling and collecting the data from all sensor modules through means such as *remote method calling*, making use of the **Event Bus Architecture** implemented by **DBus**. This module also serves as an interface to the services provided by the system for the Remote Control subsystem.    
 **Speed Controller extension** provides a set of services in order to control the DC motor resposible with the forward-backward motion of the car.    
 **Steering Controller extension** provides a set of services in order to control the DC motor responsible with steering the wheels of the car.    
