@@ -28,4 +28,13 @@ The overview of the system is depicted in **Figure 1**.
 **Remote Control subsystem** is the interface through which the embedded system is controlled. Its implementation consists of a Django Webserver through which internet connection and routing is performed.    
 **Mobile controller & consumer** represents the *Android* application used to control the vehicle, view various metrics from the sensors (e.g. speed, distance), and display the video stream transmitted by the embedded subsystem.    
 **OTA Configuration & Upgrade subsystem** is the module making the over-the-air configurations and upgrades to the sensors/the car controller subsystem possible. The subsystem provides an interface for an external user to send upgrade packets to the embedded system in a secure way - user must be authenticated, payload must be digitally signed, the system must be connected to a Wi-Fi Network.    
-**Web interface** contains the *mainenance console* togheder with the update & configure panel used by an external administrator to modify various modules of the embedded system remotely.     
+**Web interface** contains the *mainenance console* togheder with the update & configure panel used by an external administrator to modify various modules of the embedded system remotely.    
+
+## Hardware Design
+
+The hardware circuit design is depicted in **Figure 2**.
+![Figure 2](Docs/Figure2.PNG?raw=true "Figure 2")
+<p align="center">
+  <i><b>Figure 2 - Hardware Diagram</b></i>
+</p> 
+
