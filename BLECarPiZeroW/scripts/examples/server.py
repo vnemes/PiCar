@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # Based on http://stackoverflow.com/questions/22390064/use-dbus-to-just-send-a-message-in-python
 
@@ -40,4 +40,5 @@ class MyDBUSService(object):
 
 bus = SessionBus()
 bus.publish("net.lew21.pydbus.ClientServerExample", MyDBUSService())
+print("Published")
 loop.run()

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # Based on http://stackoverflow.com/questions/22390064/use-dbus-to-just-send-a-message-in-python
 
