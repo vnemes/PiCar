@@ -36,5 +36,23 @@ The hardware circuit design is depicted in **Figure 2**.
 ![Figure 2](Docs/Figure2.PNG?raw=true "Figure 2")
 <p align="center">
   <i><b>Figure 2 - Hardware Diagram</b></i>
-</p> 
+</p>
+ 
+## WebServer
+The WebServer architecture is depicted in **Figure 3**.
+![Figure 3](Docs/Figure3.png?raw=true "Figure 3")
+<p align="center">
+  <i><b>Figure 3 - WebServer Architecture</b></i>
+</p>
+Gunicorn and Nginx's lifecycle is controlled by systemd. 
+To start them the following commands are used:
 
+```bash
+systemctl start gunicorn
+systemctl start nginx
+``` 
+The systemd configuration file for Gunicorn is found in the `scripts` directory, under the name `gunicorn.service`
+
+The Nginx website configuration can be found in `scripts/ccserversite`.
+
+In case of redeployment please refer to this guide: [Nginx & Gunicorn Deployment Guide](https://www.digitalocean.com/community/tutorials/how-to-set-up-django-with-postgres-nginx-and-gunicorn-on-ubuntu-14-04)
