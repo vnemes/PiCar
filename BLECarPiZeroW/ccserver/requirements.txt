@@ -9,12 +9,14 @@ colorama==0.3.7
 cryptography==1.7.1
 Django==2.0.3
 djangorestframework==3.7.7
+djangorestframework-jwt==1.11.0
 drumhat==0.1.0
 envirophat==1.0.0
 ExplorerHAT==0.4.2
 Flask==0.12.1
 fourletterphat==0.1.0
 gpiozero==1.4.1
+gunicorn==19.7.1
 idna==2.2
 itsdangerous==0.24
 jedi==0.10.2
@@ -39,10 +41,11 @@ pigpio==1.38
 Pillow==4.0.0
 pyasn1==0.1.9
 pycrypto==2.6.1
+pydbus==0.6.0
 pygame==1.9.3
 pygobject==3.22.0
 pyinotify==0.9.6
-PyJWT==1.4.2
+PyJWT==1.6.1
 pyOpenSSL==16.2.0
 pyserial==3.2.1
 python-apt==1.1.0b5
