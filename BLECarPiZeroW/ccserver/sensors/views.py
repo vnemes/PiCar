@@ -13,13 +13,18 @@ class SpeedSensor(APIView):
     permission_classes = (PublicEndpoint,)
 
     def get(self, request):
-        json = {
-            "sensor_name": "speed_sensor",
-            "x": 100,
-            "y": 100,
-            "demo": True
-        }
-        return Response(json, status=status.HTTP_200_OK)
+        try:
+            object = bus.get_object("picar.sensor.speed", "/picar/sensor/speed")
+            interface = dbus.Interface(object, "picar.sensor.speed")
+            json = {
+                "sensor_name": "speed_sensor",
+                "speed": interface.getSpeed(),
+                "direction": interface.getDirection(),
+            }
+            return Response(json, status=status.HTTP_200_OK)
+        except Exception:
+            return Response({"message": "The module bus is offline!"},
+                            status=status.HTTP_503_SERVICE_UNAVAILABLE)
 
 
 class UltrasonicSensor(APIView):
