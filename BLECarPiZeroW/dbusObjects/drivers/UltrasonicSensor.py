@@ -1,7 +1,6 @@
 import RPi.GPIO as gpio
 import time
 
-
 class UltrasonicSensor:
 
     BCM_PIN_TRIG            = 2
@@ -24,7 +23,6 @@ class UltrasonicSensor:
         print('Initialized GPIO for the Ultrasonic Sensor')
 
 
-    # Todo: start_measurement method should spawn a thread inside of which measurements shall be taken
     def start_measurement(self):
         while self.shouldIRun:
             gpio.output(self.BCM_PIN_TRIG,True)
