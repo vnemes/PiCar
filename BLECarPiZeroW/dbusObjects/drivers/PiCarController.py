@@ -31,24 +31,26 @@ class PiCarController:
         return
 
     def set_speed(self,direction, speed):
-        if direction:
-            self.pwm_forward.start(speed)
-            self.pwm_backward.start(self.GROUND)
-            print('speed: ' + str(speed) + ' forward')
-        else:
-            self.pwm_forward.start(self.GROUND)
-            self.pwm_backward.start(speed)
-            print('speed: ' + str(speed) + ' backward')
+        if 0 <= speed <= 100:
+            if direction:
+                self.pwm_forward.start(speed)
+                self.pwm_backward.start(self.GROUND)
+                print('speed: ' + str(speed) + ' forward')
+            else:
+                self.pwm_forward.start(self.GROUND)
+                self.pwm_backward.start(speed)
+                print('speed: ' + str(speed) + ' backward')
 
     def set_steering(self,direction, steering):
-        if direction:
-            self.pwm_left.start(steering)
-            self.pwm_right.start(self.GROUND)
-            print('steering:' + str(steering) + ' left')
-        else:
-            self.pwm_left.start(self.GROUND)
-            self.pwm_right.start(steering)
-            print('steering: ' + str(steering) + ' right')
+        if 0 <= steering <= 100:
+            if direction:
+                self.pwm_left.start(steering)
+                self.pwm_right.start(self.GROUND)
+                print('steering:' + str(steering) + ' left')
+            else:
+                self.pwm_left.start(self.GROUND)
+                self.pwm_right.start(steering)
+                print('steering: ' + str(steering) + ' right')
 
 
     def stop(self):
