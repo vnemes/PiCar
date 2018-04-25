@@ -6,7 +6,7 @@ from rest_framework import status
 class SensorsTest(APITestCase):
     def setUp(self):
         # URL for demo.
-        self.sensor_demo_url = reverse('sensors-demo')
+        self.sensor_demo_url = reverse('demo-sensor')
 
     def test_demo_sensor_get(self):
         """

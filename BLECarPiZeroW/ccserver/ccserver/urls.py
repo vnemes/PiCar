@@ -20,4 +20,5 @@ from django.conf.urls import url, include
 urlpatterns = [
     path('admin/', admin.site.urls),
     url(r'^sensor/', include('sensors.urls')),
+    url(r'^control/', include('controls.urls')),
 ]
