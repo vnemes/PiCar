@@ -44,6 +44,9 @@ The WebServer architecture is depicted in **Figure 3**.
 <p align="center">
   <i><b>Figure 3 - WebServer Architecture</b></i>
 </p>
+
+The web server acts like a completely isolated module by itself. I donsen't have any dependecies on the sensor and accuator services. The communication of the web server and other components is handled via D-BUS.
+
 Gunicorn and Nginx's lifecycle is controlled by systemd. 
 To start them the following commands are used:
 
@@ -56,3 +59,24 @@ The systemd configuration file for Gunicorn is found in the `scripts` directory,
 The Nginx website configuration can be found in `scripts/ccserversite`.
 
 In case of redeployment please refer to this guide: [Nginx & Gunicorn Deployment Guide](https://www.digitalocean.com/community/tutorials/how-to-set-up-django-with-postgres-nginx-and-gunicorn-on-ubuntu-14-04)
+
+### Web Server Internals
+
+Gunicorn works by having master process that manages all the workers, the master doesn't know anything about the incomming requests and all the responses are handled by the workers.
+
+A web worker could be of multiple types like async, sync, tornado and asyncio. In this case, the web server uses synchronous workers, which can handle only one request at a time. In order to serve thousands of requests per seccond Gunicorn needs only 4-12 workers.
+
+### D-BUS: Short Introduction
+
+D-BUS is a form of inter-process communicationa and it's based on the socket mechanism that is found in UNIX-like systems.
+
+There are two busses the system bus and the session bus. The system bus is dedicated to system services and the session bus provides desktop services to user applications.
+
+A D-BUS service contains the object, which implements an interface. 
+
+* The service is a collection of objects which provide a specific set of features, it is identified by a name that is similar to the Java package naming convention, `pi.sensor`.
+* The object can be dynamically created or removed and it is identified by an unique object path like `/pi/sensor/ultrasonic`.
+* The interface extends the service name to something like `pi.sensor.Ultrasonic` and contains properties, methods and signals.
+
+The security of D-BUS is handled by policy files.
+
