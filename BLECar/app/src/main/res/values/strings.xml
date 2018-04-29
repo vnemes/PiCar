@@ -1,4 +1,6 @@
 <resources>
     <string name="app_name">BLECar</string>
     <string name="PiCarMAC">B8:27:EB:FB:EC:A4</string>
+    <string name="pi_wifi_ssid">PiZeroCar</string>
+    <string name="pi_wifi_pw">P1Password</string>
 </resources>

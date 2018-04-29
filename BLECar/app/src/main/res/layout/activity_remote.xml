@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:theme="@style/BLECarTheme"
-    tools:context="vendetta.blecar.RemoteActivity">
+    tools:context="vendetta.blecar.ControllerActivity">
 
     <SeekBar
         android:id="@+id/seek_maxSpeed"
