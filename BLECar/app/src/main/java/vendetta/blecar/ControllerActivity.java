@@ -1,6 +1,8 @@
 package vendetta.blecar;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
@@ -231,8 +233,14 @@ public class ControllerActivity extends Activity {
     @Override
     public void onBackPressed() {
 
-        // TODO add prompt for the user to confirm exit
-        finish();
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+
+        builder.setTitle("Confirm exit");
+        builder.setMessage("Do you want to exit the application?");
+        builder.setPositiveButton("Exit", (dialog, id) -> finish());
+        builder.setNegativeButton("Cancel", (dialog, id) -> {});
+        
+        builder.show();
     }
 }
 
