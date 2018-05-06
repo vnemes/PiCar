@@ -1,4 +1,4 @@
-package vendetta.blecar;
+package vendetta.blecar.http;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -13,10 +13,10 @@ import android.os.Bundle;
 
 import java.util.List;
 
+import vendetta.blecar.ControllerActivity;
+import vendetta.blecar.R;
+
 import static android.content.Context.WIFI_SERVICE;
-import static vendetta.blecar.WiFiStateEnum.CONNECTED;
-import static vendetta.blecar.WiFiStateEnum.CONNECTING;
-import static vendetta.blecar.WiFiStateEnum.DISCONNECTED;
 
 /**
  * Created by Vendetta on 29-Apr-18.
@@ -37,7 +37,7 @@ public class PiWiFiManager {
                 switch (ni.getState()) {
                     case DISCONNECTED:
                         if (lastState != NetworkInfo.State.DISCONNECTED) {
-                            activity.onConnectionChange(DISCONNECTED);
+                            activity.onConnectionChange(WiFiStateEnum.DISCONNECTED);
                             lastState = NetworkInfo.State.DISCONNECTED;
                         }
                         break;
@@ -46,16 +46,16 @@ public class PiWiFiManager {
                             WifiManager wifi = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
                             WifiInfo wifiInfo = wifi.getConnectionInfo();
                             if (wifiInfo.getSSID().replaceAll("^\"|\"$", "").equals(context.getString(R.string.pi_wifi_ssid))) {
-                                activity.onConnectionChange(CONNECTED);
+                                activity.onConnectionChange(WiFiStateEnum.CONNECTED);
                             } else
-                                activity.onConnectionChange(DISCONNECTED);
+                                activity.onConnectionChange(WiFiStateEnum.DISCONNECTED);
 
                             lastState = NetworkInfo.State.CONNECTED;
                         }
                         break;
                     case CONNECTING:
                         if (lastState != NetworkInfo.State.CONNECTING) {
-                            activity.onConnectionChange(CONNECTING);
+                            activity.onConnectionChange(WiFiStateEnum.CONNECTING);
                             lastState = NetworkInfo.State.CONNECTING;
                         }
                         break;

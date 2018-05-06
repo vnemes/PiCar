@@ -2,7 +2,6 @@ package vendetta.blecar;
 
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.content.DialogInterface;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
@@ -18,24 +17,30 @@ import android.widget.Toast;
 import java.util.Locale;
 
 import io.github.controlwear.virtual.joystick.android.JoystickView;
+import vendetta.blecar.controllers.SpeedController;
+import vendetta.blecar.controllers.SteeringController;
+import vendetta.blecar.http.PiWiFiManager;
+import vendetta.blecar.http.WiFiStateEnum;
+import vendetta.blecar.sensors.UltrasonicSensor;
 
 public class ControllerActivity extends Activity {
 
+    // UI elements
     private Button connectButton;
     private TextView connectTv, maxSpeedTv, crtSpeedTV, crtSpeedValTV, crtSteeringTV, crtSteeringValTV;
     private JoystickView joystickSpeed, joystickSteering;
     private ProgressBar pbConnect;
-    Switch joySelectSw;
+    private Switch joySelectSw;
+
+    // Sensors
+    private SpeedController speedController;
+    private SteeringController steeringController;
 
     private boolean isConnectionActive = false;
     private final static String TAG = ControllerActivity.class.getSimpleName();
     private static final int JOYSTICK_UPDATE_INTERVAL = 200; // every 200 ms = 5 times per second
 
-    private int lastSpeedStr = 0;
-    private int lastSpeedAngle = 0;
-    private int lastSteerStr = 0;
-    private int lastSteerAngl = 0;
-    private int speedLimit = 50;
+
 
 
     @Override
@@ -82,21 +87,29 @@ public class ControllerActivity extends Activity {
         joystickSteering.setEnabled(false);
         joystickSteering.setVisibility(View.INVISIBLE);
 
+        // Speed & Steering controllers
+        speedController = new SpeedController(this);
+        steeringController = new SteeringController(this);
+
 
         //start monitoring wifi connection changes
         registerReceiver(PiWiFiManager.getReceiver(), PiWiFiManager.getFilter());
+
+        UltrasonicSensor mSensor = new UltrasonicSensor(this);
+        mSensor.requestData();
+
     }
 
-    private void enableControls(boolean b) {
-        if (b) {
+    private void enableControls(boolean areTwoJoysticksRequired) {
+        if (areTwoJoysticksRequired) {
             // 2 joysticks
             joystickSpeed.setEnabled(isConnectionActive);
             joystickSpeed.setButtonDirection(1); // vertical direction
             joystickSpeed.setVisibility(isConnectionActive ? View.VISIBLE : View.INVISIBLE);
-            joystickSpeed.setOnMoveListener(this::setSpeed, JOYSTICK_UPDATE_INTERVAL);
+            joystickSpeed.setOnMoveListener(speedController::setSpeedStrAngle, JOYSTICK_UPDATE_INTERVAL);
             joystickSteering.setEnabled(isConnectionActive);
             joystickSteering.setVisibility(isConnectionActive ? View.VISIBLE : View.INVISIBLE);
-            joystickSteering.setOnMoveListener(this::setSteering, JOYSTICK_UPDATE_INTERVAL);
+            joystickSteering.setOnMoveListener(steeringController::setSteeringAnglStr, JOYSTICK_UPDATE_INTERVAL);
         } else {
             // 1 joystick
 
@@ -107,8 +120,8 @@ public class ControllerActivity extends Activity {
             joystickSpeed.setEnabled(isConnectionActive);
             joystickSpeed.setVisibility(isConnectionActive ? View.VISIBLE : View.INVISIBLE);
             joystickSpeed.setButtonDirection(0); // both directions
-            joystickSpeed.setOnMoveListener(this::setSpeed, JOYSTICK_UPDATE_INTERVAL);
-            joystickSpeed.setOnMoveListener(this::setSteering, JOYSTICK_UPDATE_INTERVAL);
+            joystickSpeed.setOnMoveListener(speedController::setSpeedStrAngle, JOYSTICK_UPDATE_INTERVAL);
+            joystickSpeed.setOnMoveListener(steeringController::setSteeringAnglStr, JOYSTICK_UPDATE_INTERVAL);
         }
     }
 
@@ -159,7 +172,7 @@ public class ControllerActivity extends Activity {
 
     private void updateMaxSpeed(int value) {
         maxSpeedTv.setText(String.format(Locale.ENGLISH, "%d%%", value));
-        speedLimit = value;
+        speedController.setMaxSpeed(value);
     }
 
     public void updateCrtSpeedTV(int value) {
@@ -179,57 +192,6 @@ public class ControllerActivity extends Activity {
     }
 
 
-    public void setSpeed(int angle, int strength) {
-
-        strength = strength < speedLimit ? strength : speedLimit;
-
-        if (strength == lastSpeedStr && angle == lastSpeedAngle)
-            return;
-        lastSpeedStr = strength;
-        lastSpeedAngle = angle;
-
-        byte val = (byte) strength;
-        byte dir = 0;
-        if (Math.sin(Math.toRadians(angle)) >= 0) {
-            dir = 1;
-            updateCrtSpeedTV(strength);
-        } else {
-            updateCrtSpeedTV(-strength);
-        }
-
-        byte[] value = new byte[2];
-        value[0] = dir;
-        value[1] = val;
-
-
-        Log.d(TAG, "wrote speed " + val);
-    }
-
-    public void setSteering(int angle, int strength) {
-
-        if (strength == lastSteerStr && angle == lastSteerAngl)
-            return;
-        lastSteerStr = strength;
-        lastSteerAngl = angle;
-
-        byte val = (byte) strength;
-        byte dir = 0;
-        if (Math.sin(Math.toRadians(angle)) >= 0) {
-            dir = 1;
-            updateCrtSteeringTV(strength);
-        } else {
-            updateCrtSteeringTV(-strength);
-        }
-
-        byte[] value = new byte[2];
-        value[0] = dir;
-        value[1] = val;
-
-
-        Log.d(TAG, "wrote steering " + val);
-    }
-
-
     @Override
     public void onBackPressed() {
 
@@ -239,8 +201,14 @@ public class ControllerActivity extends Activity {
         builder.setMessage("Do you want to exit the application?");
         builder.setPositiveButton("Exit", (dialog, id) -> finish());
         builder.setNegativeButton("Cancel", (dialog, id) -> {});
-        
         builder.show();
+    }
+
+    @Override
+    public void onStop(){
+        // unregister wifi connection receiver in order not to leak it
+        unregisterReceiver(PiWiFiManager.getReceiver());
+        super.onStop();
     }
 }
 

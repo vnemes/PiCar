@@ -32,4 +32,5 @@ dependencies {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
     compile 'io.github.controlwear:virtualjoystick:1.7.2'
+    compile 'com.android.volley:volley:1.1.0'
 }
