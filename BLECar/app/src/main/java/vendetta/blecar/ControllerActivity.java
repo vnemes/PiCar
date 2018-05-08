@@ -2,6 +2,7 @@ package vendetta.blecar;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
@@ -17,6 +18,9 @@ import android.widget.Toast;
 import java.util.Locale;
 
 import io.github.controlwear.virtual.joystick.android.JoystickView;
+import vendetta.blecar.camera.dependencies.Camera;
+import vendetta.blecar.camera.dependencies.Source;
+import vendetta.blecar.camera.VideoActivity;
 import vendetta.blecar.controllers.SpeedController;
 import vendetta.blecar.controllers.SteeringController;
 import vendetta.blecar.http.PiWiFiManager;
@@ -149,6 +153,8 @@ public class ControllerActivity extends Activity {
                 crtSteeringTV.setVisibility(View.VISIBLE);
                 crtSteeringValTV.setVisibility(View.VISIBLE);
                 Toast.makeText(this, "Connected to " + getResources().getString(R.string.pi_wifi_ssid), Toast.LENGTH_SHORT).show();
+
+
                 break;
             case DISCONNECTED:
                 isConnectionActive = false;
@@ -167,6 +173,20 @@ public class ControllerActivity extends Activity {
                 Toast.makeText(this, "Disconnected", Toast.LENGTH_SHORT).show();
                 break;
         }
+    }
+
+    public void startCamera(View v){
+        Source source = new Source(Source.ConnectionType.RawTcpIp,"192.168.10.1",1324);
+        source.width=1280;
+        source.height=720;
+        source.fps = 15;
+        source.bps=1000000;
+        Camera camera = new Camera("picamera",source);
+
+        Intent intent = new Intent(getApplicationContext(), VideoActivity.class);
+        intent.putExtra(VideoActivity.CAMERA, camera);
+        startActivity(intent);
+        
     }
 
 

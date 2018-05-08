@@ -200,5 +200,14 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/joystick_speed" />
 
+    <Button
+        android:id="@+id/camerabutton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:onClick="startCamera"
+        android:text="Button"
+        tools:layout_editor_absoluteX="297dp"
+        tools:layout_editor_absoluteY="169dp" />
+
 
 </android.support.constraint.ConstraintLayout>
