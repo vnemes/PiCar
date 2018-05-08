@@ -12,20 +12,17 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
+
         <activity android:name=".ControllerActivity"
             android:screenOrientation="landscape">
+
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity
-            android:name=".camera.VideoActivity"
-            android:label="@string/video"
-            android:screenOrientation="sensorLandscape"
-            android:parentActivityName=".ControllerActivity" >
-        </activity>
+
     </application>
 
     <uses-feature android:name="android.hardware.bluetooth_le" android:required="true"/>

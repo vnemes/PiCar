@@ -2,12 +2,14 @@ package vendetta.blecar;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.FragmentTransaction;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.FrameLayout;
 import android.widget.ProgressBar;
 import android.widget.SeekBar;
 import android.widget.Switch;
@@ -18,9 +20,9 @@ import android.widget.Toast;
 import java.util.Locale;
 
 import io.github.controlwear.virtual.joystick.android.JoystickView;
+import vendetta.blecar.camera.VideoFragment;
 import vendetta.blecar.camera.dependencies.Camera;
 import vendetta.blecar.camera.dependencies.Source;
-import vendetta.blecar.camera.VideoActivity;
 import vendetta.blecar.controllers.SpeedController;
 import vendetta.blecar.controllers.SteeringController;
 import vendetta.blecar.http.PiWiFiManager;
@@ -34,7 +36,9 @@ public class ControllerActivity extends Activity {
     private TextView connectTv, maxSpeedTv, crtSpeedTV, crtSpeedValTV, crtSteeringTV, crtSteeringValTV;
     private JoystickView joystickSpeed, joystickSteering;
     private ProgressBar pbConnect;
-    private Switch joySelectSw;
+    private Switch joySelectSw,cameraOnOffSw;
+    private FrameLayout frameLayout;
+    private VideoFragment videoFragment;
 
     // Sensors
     private SpeedController speedController;
@@ -80,6 +84,10 @@ public class ControllerActivity extends Activity {
         // Switch for selecting between 1 or 2 joysticks for controlling speed & steering
         joySelectSw = findViewById(R.id.sw_Joysticks);
         joySelectSw.setOnCheckedChangeListener((compoundButton, b) -> enableControls(b));
+
+        // Switch for enabling/disabling camera overlay
+        cameraOnOffSw = findViewById(R.id.sw_Camera);
+        cameraOnOffSw.setOnCheckedChangeListener((compoundButton, b) -> enableDisableCamera(b));
 
         // Joystick for controlling speed
         joystickSpeed = findViewById(R.id.joystick_speed);
@@ -129,6 +137,35 @@ public class ControllerActivity extends Activity {
         }
     }
 
+    private void enableDisableCamera(boolean enableCamera){
+        if (enableCamera){
+            //todo add http request to start picamera service here
+            Source source = new Source(Source.ConnectionType.RawTcpIp,"192.168.10.1",1324);
+            source.width=1280;
+            source.height=720;
+            source.fps = 15;
+            source.bps=1000000;
+            Camera camera = new Camera("picamera",source);
+            Log.d(getClass().getSimpleName(),"camera: " + camera.toString());
+
+            // get the frame layout
+            frameLayout = findViewById(R.id.video_frame);
+            frameLayout.setVisibility(View.VISIBLE);
+
+            // create the video fragment
+            videoFragment = VideoFragment.newInstance(camera);
+            FragmentTransaction fragTran = getFragmentManager().beginTransaction();
+            fragTran.add(R.id.video_frame, videoFragment);
+            fragTran.commit();
+        } else {
+            //todo add http request to start picamera service here
+            videoFragment.stop();
+            videoFragment = null;
+            frameLayout.setVisibility(View.INVISIBLE);
+        }
+
+    }
+
 
     public void onConnectionChange(WiFiStateEnum connectionState) {
         switch (connectionState) {
@@ -152,6 +189,8 @@ public class ControllerActivity extends Activity {
                 crtSpeedValTV.setVisibility(View.VISIBLE);
                 crtSteeringTV.setVisibility(View.VISIBLE);
                 crtSteeringValTV.setVisibility(View.VISIBLE);
+                joySelectSw.setVisibility(View.VISIBLE);
+                cameraOnOffSw.setVisibility(View.VISIBLE);
                 Toast.makeText(this, "Connected to " + getResources().getString(R.string.pi_wifi_ssid), Toast.LENGTH_SHORT).show();
 
 
@@ -170,23 +209,11 @@ public class ControllerActivity extends Activity {
                 crtSpeedValTV.setVisibility(View.INVISIBLE);
                 crtSteeringTV.setVisibility(View.INVISIBLE);
                 crtSteeringValTV.setVisibility(View.INVISIBLE);
+                joySelectSw.setVisibility(View.INVISIBLE);
+                cameraOnOffSw.setVisibility(View.INVISIBLE);
                 Toast.makeText(this, "Disconnected", Toast.LENGTH_SHORT).show();
                 break;
         }
-    }
-
-    public void startCamera(View v){
-        Source source = new Source(Source.ConnectionType.RawTcpIp,"192.168.10.1",1324);
-        source.width=1280;
-        source.height=720;
-        source.fps = 15;
-        source.bps=1000000;
-        Camera camera = new Camera("picamera",source);
-
-        Intent intent = new Intent(getApplicationContext(), VideoActivity.class);
-        intent.putExtra(VideoActivity.CAMERA, camera);
-        startActivity(intent);
-        
     }
 
 

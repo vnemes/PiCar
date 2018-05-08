@@ -33,41 +33,25 @@ import vendetta.blecar.camera.dependencies.TcpIpReader;
 
 public class VideoFragment extends Fragment implements TextureView.SurfaceTextureListener
 {
-	// public interfaces
-	public interface OnFadeListener
-	{
-		void onStartFadeIn();
-		void onStartFadeOut();
-	}
 
 	// public constants
 	public final static String CAMERA = "camera";
-	public final static String FULL_SCREEN = "full_screen";
-
-	// local constants
-	private final static int FADEOUT_ANIMATION_TIME = 500;
-	private final static int FADEIN_ANIMATION_TIME = 400;
-	private final static int REQUEST_WRITE_EXTERNAL_STORAGE = 73;
 
 	// instance variables
 	private Camera camera;
-	private boolean fullScreen;
 	private DecoderThread decoder;
-	private TextureView textureView;
-	private TextView nameView, messageView;
 	private Runnable finishRunner, startVideoRunner;
 	private Handler finishHandler, startVideoHandler;
 
 	//******************************************************************************
 	// newInstance
 	//******************************************************************************
-	public static VideoFragment newInstance(Camera camera, boolean fullScreen)
+	public static VideoFragment newInstance(Camera camera)
 	{
 		VideoFragment fragment = new VideoFragment();
 
 		Bundle args = new Bundle();
 		args.putParcelable(CAMERA, camera);
-		args.putBoolean(FULL_SCREEN, fullScreen);
 		fragment.setArguments(args);
 
 		return fragment;
@@ -84,7 +68,6 @@ public class VideoFragment extends Fragment implements TextureView.SurfaceTextur
 
 		// get the parameters
 		camera = getArguments().getParcelable(CAMERA);
-		fullScreen = getArguments().getBoolean(FULL_SCREEN);
 		android.util.Log.d(getClass().getSimpleName(),"camera: " + camera.toString());
 
 
@@ -106,17 +89,8 @@ public class VideoFragment extends Fragment implements TextureView.SurfaceTextur
 	{
 		View view = inflater.inflate(R.layout.fragment_video, container, false);
 
-		// configure the name
-		nameView = (TextView)view.findViewById(R.id.video_name);
-		nameView.setText(camera.name);
-
-		// initialize the message
-		messageView = (TextView)view.findViewById(R.id.video_message);
-		messageView.setTextColor(0xFFFFFF);
-		messageView.setText("initializing video");
-
 		// set the texture listener
-		textureView = view.findViewById(R.id.video_surface);
+        TextureView textureView = view.findViewById(R.id.video_surface);
 		textureView.setSurfaceTextureListener(this);
 
 		return view;
@@ -236,9 +210,6 @@ public class VideoFragment extends Fragment implements TextureView.SurfaceTextur
 	{
 		if (decoder != null)
 		{
-			messageView.setText("closing video");
-			messageView.setTextColor(Color.BLUE);
-			messageView.setVisibility(View.VISIBLE);
 			decoder.interrupt();
 			try
 			{
@@ -454,10 +425,8 @@ public class VideoFragment extends Fragment implements TextureView.SurfaceTextur
 					{
 						numReadErrors++;
 						if (numReadErrors >= MAX_READ_ERRORS)
-						{
-							setMessage(R.string.error_lost_connection);
 							break;
-						}
+
 					}
 
 					// send an output buffer to the surface
@@ -483,14 +452,7 @@ public class VideoFragment extends Fragment implements TextureView.SurfaceTextur
 			{
 				Log.d(getClass().getSimpleName(),ex.toString());
 				if (reader == null || !reader.isConnected())
-				{
-					setMessage(R.string.error_couldnt_connect);
 					finishHandler.postDelayed(finishRunner, FINISH_TIMEOUT);
-				}
-				else
-				{
-					setMessage(R.string.error_lost_connection);
-				}
 				ex.printStackTrace();
 			}
 
@@ -566,7 +528,6 @@ public class VideoFragment extends Fragment implements TextureView.SurfaceTextur
 				decoder.configure(format, surface, null, 0);
 				setDecodingState(true);
 				inputBuffers = decoder.getInputBuffers();
-				hideMessage();
 				startVideoHandler.post(startVideoRunner);
 			}
 
@@ -587,34 +548,5 @@ public class VideoFragment extends Fragment implements TextureView.SurfaceTextur
 			return nalType;
 		}
 
-		//******************************************************************************
-		// hideMessage
-		//******************************************************************************
-		private void hideMessage()
-		{
-			getActivity().runOnUiThread(new Runnable()
-			{
-				public void run()
-				{
-					messageView.setVisibility(View.GONE);
-				}
-			});
-		}
-
-		//******************************************************************************
-		// setMessage
-		//******************************************************************************
-		private void setMessage(final int id)
-		{
-			getActivity().runOnUiThread(new Runnable()
-			{
-				public void run()
-				{
-					messageView.setText(id);
-					messageView.setTextColor(0xFFFFFF);
-					messageView.setVisibility(View.VISIBLE);
-				}
-			});
-		}
 	}
 }

@@ -5,7 +5,22 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:theme="@style/BLECarTheme"
+    android:id="@+id/video"
     tools:context="vendetta.blecar.ControllerActivity">
+
+    <FrameLayout
+        android:id="@+id/video_frame"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="invisible"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="1.0">
+
+    </FrameLayout>
 
     <SeekBar
         android:id="@+id/seek_maxSpeed"
@@ -120,6 +135,24 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <Switch
+        android:id="@+id/sw_Camera"
+        android:layout_width="112dp"
+        android:layout_height="29dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="8dp"
+        android:checked="false"
+        android:showText="true"
+        android:switchTextAppearance="@android:style/TextAppearance.Material.Small"
+        android:text="Camera:"
+        android:textOff="Off"
+        android:textOn="On"
+        app:layout_constraintEnd_toStartOf="@+id/tv_max"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/sw_Joysticks" />
+
+    <Switch
         android:id="@+id/sw_Joysticks"
         android:layout_width="112dp"
         android:layout_height="29dp"
@@ -199,15 +232,6 @@
         android:visibility="invisible"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/joystick_speed" />
-
-    <Button
-        android:id="@+id/camerabutton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:onClick="startCamera"
-        android:text="Button"
-        tools:layout_editor_absoluteX="297dp"
-        tools:layout_editor_absoluteY="169dp" />
 
 
 </android.support.constraint.ConstraintLayout>
