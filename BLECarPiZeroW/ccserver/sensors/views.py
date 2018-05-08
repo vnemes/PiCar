@@ -2,9 +2,11 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from shared.permissions import PublicEndpoint
-
+import os
 import dbus
+
 bus = dbus.SessionBus()
+
 
 class SpeedSensor(APIView):
     """
@@ -25,6 +27,31 @@ class SpeedSensor(APIView):
         except Exception:
             return Response({"message": "The module bus is offline!"},
                             status=status.HTTP_503_SERVICE_UNAVAILABLE)
+
+
+class CameraSensor(APIView):
+    """
+    The camera sensor controls the cameras' status
+    """
+    permission_classes = (PublicEndpoint,)
+
+    def get(self, request):
+        return Response({"message": "Not implemented"}, status=status.HTTP_200_OK)
+
+    def post(self, reqest):
+        try:
+            cmd = reqest.data["status"]
+            if cmd == "restart":
+                os.system("systemctl restart picamera")
+            if cmd == "start":
+                os.system("systemctl start picamera")
+            if cmd == "stop":
+                os.system("systemctl stop picamera")
+
+            return Response({"message": "Done", "status": cmd}, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            return Response({"message": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class UltrasonicSensor(APIView):
