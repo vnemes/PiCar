@@ -3,6 +3,7 @@
     package="vendetta.blecar">
 
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.CHANGE_WIFI_MULTICAST_STATE" />
     <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
     <application
         android:allowBackup="true"
@@ -18,6 +19,12 @@
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+        </activity>
+        <activity
+            android:name=".camera.VideoActivity"
+            android:label="@string/video"
+            android:screenOrientation="sensorLandscape"
+            android:parentActivityName=".ControllerActivity" >
         </activity>
     </application>
 
