@@ -5,6 +5,7 @@ After=network.target
 [Service]
 User=root
 Group=pidevs
+IgnoreSIGPIPE=false
 ExecStart=/usr/bin/picamera_start
 
 [Install]
