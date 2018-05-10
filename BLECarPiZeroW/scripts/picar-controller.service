@@ -1,0 +1,13 @@
+[Unit]
+Description=A systemd service for the PiCarControllerDBUS component.
+After=network.target
+
+[Service]
+User=root
+Group=pidevs
+Environment=DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/0/bus
+ExecStart=/usr/bin/python3 /home/vendetta/PiCar/dbusObjects/PiCarControllerDBUS.py
+ExecStop=/usr/bin/dbus-send --print-reply --dest=picar.control.speedsteering /picar/control/speedsteering picar.control.speedsteering.quit
+
+[Install]
+WantedBy=multi-user.target
