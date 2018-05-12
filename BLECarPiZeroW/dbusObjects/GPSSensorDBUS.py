@@ -23,9 +23,9 @@ class GPSSensorDBUS(dbus.service.Object):
     def _startSensor(self):
         """notifies the driver to start the GPS sensor'"""
         _thread.start_new_thread(self.gpsSensor.start_measurement,())
-        while True:
-            print(str(self.gpsSensor.get_gps()))
-            time.sleep(2)
+        # while True:
+        #     print(str(self.gpsSensor.get_gps()))
+        #     time.sleep(2)
 
 
     @dbus.service.method('picar.sensor.gps')
