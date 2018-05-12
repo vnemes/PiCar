@@ -2,6 +2,7 @@
 
 dbus-send --print-reply --dest=picar.sensor.ultrasonic /picar/sensor/ultrasonic picar.sensor.ultrasonic.quit
 dbus-send --print-reply --dest=picar.control.speedsteering /picar/control/speedsteering picar.control.speedsteering.quit
+dbus-send --print-reply --dest=picar.sensor.gps /picar/sensor/gps picar.sensor.gps.quit
 
 #get distance from the ultrasonic sensor
 
@@ -10,3 +11,6 @@ dbus-send --print-reply --dest=picar.sensor.ultrasonic /picar/sensor/ultrasonic 
 # set speed on the speed-steering controller
 
 dbus-send --print-reply --dest=picar.control.speedsteering /picar/control/speedsteering picar.control.speedsteering.setSpeed int32:1 int32:80
+
+# get gps from the GPS sensor
+dbus-send --print-reply --dest=picar.sensor.gps /picar/sensor/gps picar.sensor.gps.getCoords
