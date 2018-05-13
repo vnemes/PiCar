@@ -18,19 +18,19 @@ import vendetta.blecar.R;
 public class UltrasonicSensor implements ISensor {
 
     private Context context;
-    private int distance;
+    private double distance;
 
 
     public UltrasonicSensor(Context context) {
         this.context = context;
-        this.distance = Integer.MAX_VALUE;
+        this.distance = Double.NaN;
     }
 
     public void requestData(){
         HTTPHandlerSingleton.getInstance(context).addToRequestQueue(new JsonObjectRequest(Request.Method.GET, context.getString(R.string.pi_url) + "/sensor/ultrasonic/", null, response -> {
             Log.d("HTTP",response.toString());
             try {
-                distance = (int) response.get("distance"); // todo add callback to ControllerActivity here
+                distance = (double) response.get("distance"); // todo add callback to ControllerActivity here
             } catch (JSONException e) {
                 e.printStackTrace();
             }
