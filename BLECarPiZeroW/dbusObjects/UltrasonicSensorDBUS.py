@@ -1,12 +1,9 @@
 #!/usr/bin/python3
 
 import _thread
-import time
-import gi
 from drivers.UltrasonicSensor import UltrasonicSensor
 
-gi.require_version('Gtk', '3.0')
-from gi.repository import Gtk
+from gi.repository import GLib
 import dbus
 import dbus.service
 from dbus.mainloop.glib import DBusGMainLoop
@@ -16,9 +13,12 @@ class UltrasonicSensorDBUS(dbus.service.Object):
     ultrasonicSensor = UltrasonicSensor()
 
     def __init__(self):
+        DBusGMainLoop(set_as_default=True)
+        self.loop = GLib.MainLoop()
         bus_name = dbus.service.BusName('picar.sensor.ultrasonic', bus=dbus.SessionBus())
         dbus.service.Object.__init__(self, bus_name, '/picar/sensor/ultrasonic')
         self._startDistanceMeasurement()
+        self.loop.run()
 
     def _startDistanceMeasurement(self):
         """notifies the driver to start the distance measurement'"""
@@ -37,11 +37,15 @@ class UltrasonicSensorDBUS(dbus.service.Object):
     def quit(self):
         """stops the meassurement, removes this object from the DBUS connection and exits"""
         self.ultrasonicSensor.stop()
-        self.remove_from_connection()
-        Gtk.main_quit()
+        self.loop.quit()
         return
 
 if __name__ == "__main__":
-    DBusGMainLoop(set_as_default=True)
-    myservice = UltrasonicSensorDBUS()
-    Gtk.main()
+
+    try:
+        myservice = UltrasonicSensorDBUS()
+    except KeyboardInterrupt:
+        print("keyboard interrupt received")
+        myservice.quit()
+    except Exception as e:
+        print("Unexpected exception occurred: '{}'".format(str(e)))
