@@ -46,7 +46,7 @@ public class ControllerActivity extends Activity {
 
     private boolean isConnectionActive = false;
     private final static String TAG = ControllerActivity.class.getSimpleName();
-    private static final int JOYSTICK_UPDATE_INTERVAL = 200; // every 200 ms = 5 times per second
+    private static final int JOYSTICK_UPDATE_INTERVAL = 333; // every 200 ms = 5 times per second
 
 
 
@@ -108,7 +108,7 @@ public class ControllerActivity extends Activity {
         registerReceiver(PiWiFiManager.getReceiver(), PiWiFiManager.getFilter());
 
         UltrasonicSensor mSensor = new UltrasonicSensor(this);
-        mSensor.requestData();
+        mSensor.requestData(); // todo: instead of this, send a request to establish a connection
 
     }
 
