@@ -23,9 +23,9 @@ class UltrasonicSensorDBUS(dbus.service.Object):
     def _startDistanceMeasurement(self):
         """notifies the driver to start the distance measurement'"""
         _thread.start_new_thread(self.ultrasonicSensor.start_measurement,())
-        while True:
-            print(str(self.ultrasonicSensor.get_distance()) + ' cm')
-            time.sleep(0.2)
+        # while True:
+        #     print(str(self.ultrasonicSensor.get_distance()) + ' cm')
+        #     time.sleep(0.2)
 
 
     @dbus.service.method('picar.sensor.ultrasonic')

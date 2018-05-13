@@ -3,8 +3,8 @@ import time
 
 class UltrasonicSensor:
 
-    BCM_PIN_TRIG            = 2
-    BCM_PIN_ECHO            = 3
+    BCM_PIN_TRIG            = 6
+    BCM_PIN_ECHO            = 12
     SOUND_SPEED_CONSTANT    = 17150
     GROUND                  = 0
 
