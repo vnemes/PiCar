@@ -48,7 +48,32 @@ class CameraSensor(APIView):
             if cmd == "stop":
                 os.system("systemctl stop picamera")
 
-            return Response({"message": "Done", "status": cmd}, status=status.HTTP_200_OK)
+            return Response({"message": "Done", "command": cmd}, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            return Response({"message": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class GPSSensor(APIView):
+    """
+    The gps sensor view controls the GPS module.
+    """
+    permission_classes = (PublicEndpoint,)
+
+    def get(self, request):
+        return Response({"message": "Not implemented"}, status=status.HTTP_200_OK)
+
+    def post(self, reqest):
+        try:
+            cmd = reqest.data["cmd"]
+            if cmd == "restart":
+                os.system("systemctl restart gps")
+            if cmd == "start":
+                os.system("systemctl start gps")
+            if cmd == "stop":
+                os.system("systemctl stop gps")
+
+            return Response({"message": "Done", "command": cmd}, status=status.HTTP_200_OK)
 
         except Exception as e:
             return Response({"message": str(e)}, status=status.HTTP_400_BAD_REQUEST)
