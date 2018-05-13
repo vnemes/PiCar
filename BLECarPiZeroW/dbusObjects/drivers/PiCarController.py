@@ -1,66 +1,72 @@
-import RPi.GPIO as gpio
+import pigpio
 
 class PiCarController:
 
-    BCM_PIN_STEERING_HIGH   = 19
-    BCM_PIN_STEERING_LOW    = 16
-    BCM_PIN_SPEED_HIGH      = 26
-    BCM_PIN_SPEED_LOW       = 20
+    BCM_PIN_SPEED_HIGH      = 19
+    BCM_PIN_SPEED_LOW       = 16
+    BCM_PIN_STEERING_HIGH   = 26
+    BCM_PIN_STEERING_LOW    = 20
     GPIO_PWM_FREQUENCY      = 20000 #20kHz
-    GROUND                  = 0
+    GPIO_TORQUE_CORRECT     = 50
+    GPIO_GROUND             = 0
 
     def __init__(self):
-        gpio.setmode(gpio.BCM)
-        #set pins 19, 16, 26, 20 to a pwm frequency of 20000
-        gpio.setup(self.BCM_PIN_STEERING_HIGH,gpio.OUT)
-        gpio.setup(self.BCM_PIN_STEERING_LOW,gpio.OUT)
-        gpio.setup(self.BCM_PIN_SPEED_HIGH,gpio.OUT)
-        gpio.setup(self.BCM_PIN_SPEED_LOW,gpio.OUT)
+        self.pi = pigpio.pi()
+        self.pi.set_PWM_range(self.BCM_PIN_STEERING_HIGH, 100)
+        self.pi.set_PWM_range(self.BCM_PIN_STEERING_LOW, 100)
+        self.pi.set_PWM_range(self.BCM_PIN_SPEED_HIGH, 100)
+        self.pi.set_PWM_range(self.BCM_PIN_SPEED_LOW, 100)
 
-        self.pwm_forward  = gpio.PWM(self.BCM_PIN_STEERING_HIGH,self.GPIO_PWM_FREQUENCY)
-        self.pwm_backward = gpio.PWM(self.BCM_PIN_STEERING_LOW,self.GPIO_PWM_FREQUENCY)
-        self.pwm_left     = gpio.PWM(self.BCM_PIN_SPEED_HIGH,self.GPIO_PWM_FREQUENCY)
-        self.pwm_right    = gpio.PWM(self.BCM_PIN_SPEED_LOW,self.GPIO_PWM_FREQUENCY)
+        self.pi.set_PWM_frequency(self.BCM_PIN_STEERING_HIGH, self.GPIO_PWM_FREQUENCY)
+        self.pi.set_PWM_frequency(self.BCM_PIN_STEERING_LOW, self.GPIO_PWM_FREQUENCY)
+        self.pi.set_PWM_frequency(self.BCM_PIN_SPEED_HIGH, self.GPIO_PWM_FREQUENCY)
+        self.pi.set_PWM_frequency(self.BCM_PIN_SPEED_LOW, self.GPIO_PWM_FREQUENCY)
 
-        self.pwm_forward.start(self.GROUND)
-        self.pwm_backward.start(self.GROUND)
-        self.pwm_left.start(self.GROUND)
-        self.pwm_right.start(self.GROUND)
-
-        print('Initialized GPIO with PWM frequency 20 kHz')
+        print('Initialized GPIO with PWM frequency of ' + str(self.pi.get_PWM_frequency(self.BCM_PIN_STEERING_HIGH)) + ' Hz')
         return
 
+    def normalize(self,value):
+        if value:
+            value = self.GPIO_TORQUE_CORRECT + value/2
+        return value
+
+
     def set_speed(self,direction, speed):
+        speed = self.normalize(speed)
         if 0 <= speed <= 100:
             if direction:
-                self.pwm_forward.start(speed)
-                self.pwm_backward.start(self.GROUND)
+                self.pi.set_PWM_dutycycle(self.BCM_PIN_SPEED_HIGH, speed)
+                self.pi.set_PWM_dutycycle(self.BCM_PIN_SPEED_LOW, self.GPIO_GROUND)
                 print('speed: ' + str(speed) + ' forward')
             else:
-                self.pwm_forward.start(self.GROUND)
-                self.pwm_backward.start(speed)
+
+                self.pi.set_PWM_dutycycle(self.BCM_PIN_SPEED_HIGH, self.GPIO_GROUND)
+                self.pi.set_PWM_dutycycle(self.BCM_PIN_SPEED_LOW, speed)
                 print('speed: ' + str(speed) + ' backward')
 
+
     def set_steering(self,direction, steering):
+        steering = self.normalize(steering)
         if 0 <= steering <= 100:
             if direction:
-                self.pwm_left.start(steering)
-                self.pwm_right.start(self.GROUND)
-                print('steering:' + str(steering) + ' left')
+                self.pi.set_PWM_dutycycle(self.BCM_PIN_STEERING_HIGH, steering)
+                self.pi.set_PWM_dutycycle(self.BCM_PIN_STEERING_LOW, self.GPIO_GROUND)
+                print('speed: ' + str(steering) + ' left')
             else:
-                self.pwm_left.start(self.GROUND)
-                self.pwm_right.start(steering)
-                print('steering: ' + str(steering) + ' right')
+
+                self.pi.set_PWM_dutycycle(self.BCM_PIN_STEERING_HIGH, self.GPIO_GROUND)
+                self.pi.set_PWM_dutycycle(self.BCM_PIN_STEERING_LOW, steering)
+                print('speed: ' + str(steering) + ' right')
 
 
     def stop(self):
 
-        self.pwm_forward.stop()
-        self.pwm_backward.stop()
-        self.pwm_left.stop()
-        self.pwm_right.stop()
+        self.pi.set_PWM_dutycycle(self.BCM_PIN_SPEED_HIGH, self.GPIO_GROUND)
+        self.pi.set_PWM_dutycycle(self.BCM_PIN_SPEED_LOW, self.GPIO_GROUND)
+        self.pi.set_PWM_dutycycle(self.BCM_PIN_STEERING_HIGH, self.GPIO_GROUND)
+        self.pi.set_PWM_dutycycle(self.BCM_PIN_STEERING_LOW, self.GPIO_GROUND)
+        self.pi.stop()
 
-        gpio.cleanup()
         print('Closed GPIO handler')
 
 
