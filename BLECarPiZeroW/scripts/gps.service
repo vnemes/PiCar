@@ -1,0 +1,14 @@
+[Unit]
+Description=A systemd service for the GPS module.
+Type=dbus
+After=network.target
+
+[Service]
+User=root
+Group=pidevs
+Environment=DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/0/bus
+ExecStart=/usr/bin/python3 /home/vendetta/PiCar/dbusObjects/GPSSensorDBUS.py
+ExecStop=/usr/bin/dbus-send --print-reply --dest=picar.sensor.gps /picar/sensor/gps picar.se$
+
+[Install]
+WantedBy=multi-user.target
