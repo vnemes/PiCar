@@ -8,7 +8,7 @@ User=root
 Group=pidevs
 Environment=DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/0/bus
 ExecStart=/usr/bin/python3 /home/vendetta/PiCar/dbusObjects/GPSSensorDBUS.py
-ExecStop=/usr/bin/dbus-send --print-reply --dest=picar.sensor.gps /picar/sensor/gps picar.se$
+ExecStop=/usr/bin/dbus-send --print-reply --dest=picar.sensor.gps /picar/sensor/gps picar.sensor.gps.quit
 
 [Install]
 WantedBy=multi-user.target
