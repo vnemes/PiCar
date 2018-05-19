@@ -19,7 +19,7 @@ namespace DS4BLE
 
         static void Main(string[] args)
         {
-            
+            /*
             Console.Out.WriteLine("Starting Root Process");
             ThreadStart padStart = new ThreadStart(new MyDS4().work);
             Thread padThread = new Thread(padStart);
@@ -27,7 +27,7 @@ namespace DS4BLE
             padThread.Join();
             Console.Out.WriteLine("Pad Thread ended, exiting in 5 seconds");
             Thread.Sleep(5000);
-            
+            */
 
 
             /*
@@ -43,7 +43,7 @@ namespace DS4BLE
             SQLiteConnection db;
             db = new SQLiteConnection("Data Source=LoginDB.sqlite;Version=3;");
             db.Open();
-            //string sql = "create table data (ID INTEGER NOT NULL primary key, Connect varchar(50), Disconnect varchar(50), IP varchar(50), distance real)";
+            //string sql = "create table data (ID INTEGER NOT NULL primary key, Connect varchar(50), Disconnect varchar(50), IP varchar(50), distance varchar(50))";
             string sql = "insert into data (Connect, Disconnect, IP, distance) values ('"+DateTimeSQL(DateTime.Now)+"', '"+DateTimeSQL(DateTime.Now)+"', '192.168.7.3', 50)";
             //string sql = "delete from data";
             SQLiteCommand cmd = new SQLiteCommand(sql, db);
@@ -63,6 +63,14 @@ namespace DS4BLE
             }
             Thread.Sleep(5000);
             db.Close();*/
+
+
+            DBHandler.init("DB.sqlite");
+            DBHandler.publish(DateTime.Now, DateTime.Now, "192.168.5.4", 457.34754);
+            DBHandler.publish(DateTime.Now, DateTime.Now, "192.168.5.8", 546.345);
+            DBHandler.printTable();
+            DBHandler.close();
+            Thread.Sleep(5000);
         }
     }
 }
