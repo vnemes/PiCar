@@ -5,6 +5,8 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Data.SQLite;
 using System.IO;
+using System.Net;
+using System.Net.Sockets;
 
 namespace DS4BLE
 {
@@ -13,10 +15,23 @@ namespace DS4BLE
         private static SQLiteConnection db;
 
         //Returns a formatted string of the given date and time
-        private static string SQLDateFormat(DateTime dt)
+        public static string SQLDateFormat(DateTime dt)
         {
             string DTF = "{0}-{1}-{2} {3}:{4}:{5}";
             return string.Format(DTF, dt.Year, dt.Month, dt.Day, dt.Hour, dt.Minute, dt.Second);
+        }
+
+        public static string getLocalIP()
+        {
+            var host = Dns.GetHostEntry(Dns.GetHostName());
+            foreach (var ip in host.AddressList)
+            {
+                if (ip.AddressFamily == AddressFamily.InterNetwork)
+                {
+                    return ip.ToString();
+                }
+            }
+            return null;
         }
 
         //Initializes and opens the database from the location given by str
@@ -43,7 +58,7 @@ namespace DS4BLE
 
 
         //Published a new entry into the data table with connection and disconnection time, current IP address and distance traveled
-        public static void publish(DateTime connect,DateTime disconnect,string IP,double distance)
+        public static void publish(DateTime connect,DateTime disconnect,double distance)
         {
             if (db == null)
             {
@@ -53,8 +68,8 @@ namespace DS4BLE
             string sql = "insert into data (Connect, Disconnect, IP, distance) values ("+
                             "'"+SQLDateFormat(connect)+"', "+
                             "'"+SQLDateFormat(disconnect)+"', "+
-                            "'"+IP+"', "+
-                            "'"+distance+"')";
+                            "'"+getLocalIP()+"', "+
+                            "'"+Math.Round(distance,4)+"')";
             //Console.Out.WriteLine(sql);
             SQLiteCommand cmd = new SQLiteCommand(sql, db);
             cmd.ExecuteNonQuery();

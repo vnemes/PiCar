@@ -21,7 +21,7 @@ namespace DS4BLE
         {
             /*
             Console.Out.WriteLine("Starting Root Process");
-            ThreadStart padStart = new ThreadStart(new MyDS4().work);
+            ThreadStart padStart = new ThreadStart(new MyDS4().init);
             Thread padThread = new Thread(padStart);
             padThread.Start();
             padThread.Join();
@@ -66,8 +66,8 @@ namespace DS4BLE
 
 
             DBHandler.init("DB.sqlite");
-            DBHandler.publish(DateTime.Now, DateTime.Now, "192.168.5.4", 457.34754);
-            DBHandler.publish(DateTime.Now, DateTime.Now, "192.168.5.8", 546.345);
+            DBHandler.publish(DateTime.Now, DateTime.Now, 457.34754);
+            DBHandler.publish(DateTime.Now, DateTime.Now, 546.345);
             DBHandler.printTable();
             DBHandler.close();
             Thread.Sleep(5000);
