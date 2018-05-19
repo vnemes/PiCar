@@ -240,13 +240,13 @@ void setSpeed(char dir, char speed){
     Serial.print("Speed: ");
   #endif
   if (dir){
-    ledcWrite(1,speed ? MINIMUM_TORQUE_CORRECTION + speed>>1:GROUND);
+    ledcWrite(1,speed ? MINIMUM_TORQUE_CORRECTION + speed/2 : GROUND);
     ledcWrite(2,GROUND);
     #ifdef DEBUG_MODE
       Serial.println(int(speed));
     #endif
   } else {
-     ledcWrite(2,speed? MINIMUM_TORQUE_CORRECTION + speed>>1:GROUND);
+     ledcWrite(2,speed? MINIMUM_TORQUE_CORRECTION + speed/2 : GROUND);
      ledcWrite(1,GROUND);
      #ifdef DEBUG_MODE
       Serial.println(-int(speed));
