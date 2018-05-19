@@ -7,7 +7,8 @@
 /**
  Compiler switches for enabling/disabling functionalities
 **/
-#define BLUETOOTH_CONTROL_ON // bluetooth speed & steering control
+//#define BLUETOOTH_CONTROL_ON // bluetooth speed & steering control
+#define WIFI_CONTROL_ON // wifi speed & steering control
 //#define WIFI_CAMERA_ON // wifi webserver and camera functionality
 #define DEBUG_MODE // logging enabled
 /**
@@ -140,7 +141,7 @@ const int TFT_CS = 5;
 //CLK <- SCK 18
 
 #define ssid1        "Vendetta OnePlus 5"
-#define password1    "<Edited out>"
+#define password1    "INeverUseThisPassword"
 
 OV7670 *camera;
 
@@ -210,6 +211,75 @@ void serve()
 }
 
 #endif
+
+#ifdef WIFI_CONTROL_ON
+#include <WiFi.h>
+
+#define GROUND                        0x00
+#define MINIMUM_TORQUE_CORRECTION     0x80
+
+#define SPEED_PIN_HIGH                19
+#define SPEED_PIN_LOW                 18
+
+
+#define STEERING_PIN_HIGH             26 //17
+#define STEERING_PIN_LOW              25 //16
+
+#define ssid        "PiZeroCar"
+#define password    "P1Password"
+
+
+#define BUFSIZE 4
+
+uint8_t buf[BUFSIZE]; //0-> 1-forward, 0 backward, 1-> speedVal, 3-> 0-left, 1-right, 4-> directionVal
+
+WiFiServer server(80);
+
+void setSpeed(char dir, char speed){
+    #ifdef DEBUG_MODE
+    Serial.print("Speed: ");
+  #endif
+  if (dir){
+    ledcWrite(1,speed ? MINIMUM_TORQUE_CORRECTION + speed>>1:GROUND);
+    ledcWrite(2,GROUND);
+    #ifdef DEBUG_MODE
+      Serial.println(int(speed));
+    #endif
+  } else {
+     ledcWrite(2,speed? MINIMUM_TORQUE_CORRECTION + speed>>1:GROUND);
+     ledcWrite(1,GROUND);
+     #ifdef DEBUG_MODE
+      Serial.println(-int(speed));
+     #endif
+  }
+}
+
+void setSteering(char dir, char steering){
+  #ifdef DEBUG_MODE
+    Serial.print("Steering: ");
+  #endif
+  if (dir){
+    ledcWrite(3,steering/*?MINIMUM_TORQUE_CORRECTION + steering>>1:GROUND*/);
+    ledcWrite(4,GROUND);
+    #ifdef DEBUG_MODE
+      Serial.println(int(steering));
+    #endif
+  } else {
+     ledcWrite(4,steering/*?MINIMUM_TORQUE_CORRECTION + steering>>1:GROUND*/);
+     ledcWrite(3,GROUND);
+     #ifdef DEBUG_MODE
+      Serial.println(-int(steering));
+     #endif
+  }
+}
+
+#endif
+
+
+
+
+
+
 
 void setup() 
 {
@@ -283,6 +353,42 @@ void setup()
   server.begin();
   
   #endif
+
+
+  #ifdef WIFI_CONTROL_ON
+
+  // Initialize DC Motor pins for PWM
+  ledcAttachPin(SPEED_PIN_HIGH,1);
+  ledcAttachPin(SPEED_PIN_LOW,2);
+  ledcAttachPin(STEERING_PIN_HIGH,3);
+  ledcAttachPin(STEERING_PIN_LOW,4);
+  // Initialize channels 
+  // channels 0-15, resolution 1-16 bits, freq limits depend on resolution
+  // ledcSetup(uint8_t channel, uint32_t freq, uint8_t resolution_bits);
+  ledcSetup(1, 18000, 8); // 18 kHz PWM, 8-bit resolution
+  ledcSetup(2, 18000, 8);
+  ledcSetup(3, 18000, 8); // 18 kHz PWM, 8-bit resolution
+  ledcSetup(4, 18000, 8);
+  
+    Serial.println();
+    Serial.println();
+    Serial.print("Connecting to ");
+    Serial.println(ssid);
+
+    WiFi.begin(ssid, password);
+
+    while (WiFi.status() != WL_CONNECTED) {
+        delay(500);
+        Serial.print(".");
+    }
+
+    Serial.println("");
+    Serial.println("WiFi connected.");
+    Serial.println("IP address: ");
+    Serial.println(WiFi.localIP());
+    
+    server.begin();
+  #endif
 }
 
 void loop()
@@ -290,6 +396,33 @@ void loop()
   #ifdef WIFI_CAMERA_ON
   camera->oneFrame();
   serve();
+  #endif
+
+  #ifdef WIFI_CONTROL_ON
+  WiFiClient client = server.available();   // listen for incoming clients
+
+  if (client) {                             // if you get a client,
+    Serial.print("New Client:");           // print a message out the serial port
+    String currentLine = "";                // make a String to hold incoming data from the client
+    while (client.connected()) {            // loop while the client's connected
+      if (client.available()) {   
+        // if there's bytes to read from the client,
+        client.read(buf,BUFSIZE);
+        setSpeed(buf[0],buf[1]);
+        setSteering(buf[2],buf[3]);
+//        char speed = client.read();             // read a byte, then
+//        char steering = client.read();             // read a byte, then
+//        Serial.write(speed);                    // print it out the serial monitor
+//        Serial.print(" ");
+//        Serial.write(steering);
+        client.write(buf,BUFSIZE);
+        Serial.println();
+    }
+    }
+    // close the connection:
+    client.stop();
+    Serial.println("Client Disconnected.");
+  }
   #endif
   
   #ifdef BLUETOOTH_CONTROL_ON

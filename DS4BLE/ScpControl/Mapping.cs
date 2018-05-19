@@ -1,0 +1,411 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+
+namespace ScpControl
+{
+    class Mapping
+    {
+        public static void mapButtons(ref DS4State nextState, ref DS4State cState, ref DS4State prevState, Mouse touchpad)
+        {
+            foreach (KeyValuePair<DS4Controls, ushort> customKey in Global.getCustomKeys())
+            {
+                DS4KeyType keyType = Global.getCustomKeyType(customKey.Key);
+                bool PrevOn = getBoolMapping(customKey.Key, prevState);
+                if (getBoolMapping(customKey.Key, cState))
+                {
+                    resetToDefaultValue(customKey.Key, ref cState);
+                    if (!PrevOn)
+                    {
+
+                        if (keyType.HasFlag(DS4KeyType.ScanCode))
+                            touchpad.performSCKeyPress(customKey.Value);
+                        else touchpad.performKeyPress(customKey.Value);
+                    }
+                    else if (keyType.HasFlag(DS4KeyType.Repeat))
+                        if (keyType.HasFlag(DS4KeyType.ScanCode))
+                            touchpad.performSCKeyPress(customKey.Value);
+                        else touchpad.performKeyPress(customKey.Value);
+                }
+                else if (PrevOn)
+                {
+                    if (keyType.HasFlag(DS4KeyType.ScanCode))
+                        touchpad.performSCKeyRelease(customKey.Value);
+                    else touchpad.performKeyRelease(customKey.Value);
+                }
+            }
+
+            bool LX = false, LY = false, RX = false, RY = false;
+            nextState.LX = 127;
+            nextState.LY = 127;
+            nextState.RX = 127;
+            nextState.RY = 127;
+
+            foreach (KeyValuePair<DS4Controls, X360Controls> customButton in Global.getCustomButtons())
+            {
+
+                bool LXChanged = nextState.LX == 127;
+                bool LYChanged = nextState.LY == 127;
+                bool RXChanged = nextState.RX == 127;
+                bool RYChanged = nextState.RY == 127;
+                switch (customButton.Value)
+                {
+                    case X360Controls.A:
+                        nextState.Cross = getBoolMapping(customButton.Key, cState);
+                        break;
+                    case X360Controls.B:
+                        nextState.Circle = getBoolMapping(customButton.Key, cState);
+                        break;
+                    case X360Controls.X:
+                        nextState.Square = getBoolMapping(customButton.Key, cState);
+                        break;
+                    case X360Controls.Y:
+                        nextState.Triangle = getBoolMapping(customButton.Key, cState);
+                        break;
+                    case X360Controls.LB:
+                        nextState.L1 = getBoolMapping(customButton.Key, cState);
+                        break;
+                    case X360Controls.LS:
+                        nextState.L3 = getBoolMapping(customButton.Key, cState);
+                        break;
+                    case X360Controls.RB:
+                        nextState.R1 = getBoolMapping(customButton.Key, cState);
+                        break;
+                    case X360Controls.RS:
+                        nextState.R3 = getBoolMapping(customButton.Key, cState);
+                        break;
+                    case X360Controls.DpadUp:
+                        nextState.DpadUp = getBoolMapping(customButton.Key, cState);
+                        break;
+                    case X360Controls.DpadDown:
+                        nextState.DpadDown = getBoolMapping(customButton.Key, cState);
+                        break;
+                    case X360Controls.DpadLeft:
+                        nextState.DpadLeft = getBoolMapping(customButton.Key, cState);
+                        break;
+                    case X360Controls.DpadRight:
+                        nextState.DpadRight = getBoolMapping(customButton.Key, cState);
+                        break;
+                    case X360Controls.Guide:
+                        nextState.PS = getBoolMapping(customButton.Key, cState);
+                        break;
+                    case X360Controls.Back:
+                        nextState.Share = getBoolMapping(customButton.Key, cState);
+                        break;
+                    case X360Controls.Start:
+                        nextState.Options = getBoolMapping(customButton.Key, cState);
+                        break;
+                    case X360Controls.LXNeg:
+                        if (LXChanged)
+                        {
+                            nextState.LX = getXYAxisMapping(customButton.Key, cState);
+                            LX = true;
+                        }
+                        break;
+                    case X360Controls.LYNeg:
+                        if (LYChanged)
+                        {
+                            nextState.LY = getXYAxisMapping(customButton.Key, cState);
+                            LY = true;
+                        }
+                        break;
+                    case X360Controls.RXNeg:
+                        if (RXChanged)
+                        {
+                            nextState.RX = getXYAxisMapping(customButton.Key, cState);
+                            RX = true;
+                        }
+                        break;
+                    case X360Controls.RYNeg:
+                        if (RYChanged)
+                        {
+                            nextState.RY = getXYAxisMapping(customButton.Key, cState);
+                            RY = true;
+                        }
+                        break;
+                    case X360Controls.LXPos:
+                        if (LXChanged)
+                        {
+                            nextState.LX = getXYAxisMapping(customButton.Key, cState, true);
+                            LX = true;
+                        }
+                        break;
+                    case X360Controls.LYPos:
+                        if (LYChanged)
+                        {
+                            nextState.LY = getXYAxisMapping(customButton.Key, cState, true);
+                            LY = true;
+                        }
+                        break;
+                    case X360Controls.RXPos:
+                        if (RXChanged)
+                        {
+                            nextState.RX = getXYAxisMapping(customButton.Key, cState, true);
+                            RX = true;
+                        }
+                        break;
+                    case X360Controls.RYPos:
+                        if (RYChanged)
+                        {
+                            nextState.RY = getXYAxisMapping(customButton.Key, cState, true);
+                            RY = true;
+                        }
+                        break;
+                    case X360Controls.LT:
+                        nextState.L2 = getByteMapping(customButton.Key, cState);
+                        break;
+                    case X360Controls.RT:
+                        nextState.R2 = getByteMapping(customButton.Key, cState);
+                        break;
+                    case X360Controls.LeftMouse:
+                        bool PrevOn = getBoolMapping(customButton.Key, prevState);
+                        bool CurOn = getBoolMapping(customButton.Key, cState);
+                        if (!PrevOn && CurOn)
+                            touchpad.MouseEvent(Mouse.MOUSEEVENTF_LEFTDOWN);
+                        else if (PrevOn && !CurOn)
+                            touchpad.MouseEvent(Mouse.MOUSEEVENTF_LEFTUP);
+                        break;
+                    case X360Controls.RightMouse:
+                        PrevOn = getBoolMapping(customButton.Key, prevState);
+                        CurOn = getBoolMapping(customButton.Key, cState);
+                        if (!PrevOn && CurOn)
+                            touchpad.MouseEvent(Mouse.MOUSEEVENTF_RIGHTDOWN);
+                        else if (PrevOn && !CurOn)
+                            touchpad.MouseEvent(Mouse.MOUSEEVENTF_RIGHTUP);
+                        break;
+                    case X360Controls.MiddleMouse:
+                        PrevOn = getBoolMapping(customButton.Key, prevState);
+                        CurOn = getBoolMapping(customButton.Key, cState);
+                        if (!PrevOn && CurOn)
+                            touchpad.MouseEvent(Mouse.MOUSEEVENTF_MIDDLEDOWN);
+                        else if (PrevOn && !CurOn)
+                            touchpad.MouseEvent(Mouse.MOUSEEVENTF_MIDDLEUP);
+                        break;
+                    case X360Controls.Unbound:
+                        resetToDefaultValue(customButton.Key, ref nextState);
+                        break;
+                }
+            }
+
+            if (!LX)
+                nextState.LX = cState.LX;
+            if (!LY)
+                nextState.LY = cState.LY;
+            if (!RX)
+                nextState.RX = cState.RX;
+            if (!RY)
+                nextState.RY = cState.RY;
+        }
+
+        public static bool compare(byte b1, byte b2)
+        {
+            if (Math.Abs(b1 - b2) > 10)
+            {
+                return false;
+            }
+            return true;
+        }
+        public static byte getByteMapping(DS4Controls control, DS4State cState)
+        {
+            switch (control)
+            {
+                case DS4Controls.Share: return (byte)(cState.Share ? 255 : 0);
+                case DS4Controls.Options: return (byte)(cState.Options ? 255 : 0);
+                case DS4Controls.L1: return (byte)(cState.L1 ? 255 : 0);
+                case DS4Controls.R1: return (byte)(cState.R1 ? 255 : 0);
+                case DS4Controls.L3: return (byte)(cState.L3 ? 255 : 0);
+                case DS4Controls.R3: return (byte)(cState.R3 ? 255 : 0);
+                case DS4Controls.DpadUp: return (byte)(cState.DpadUp ? 255 : 0);
+                case DS4Controls.DpadDown: return (byte)(cState.DpadDown ? 255 : 0);
+                case DS4Controls.DpadLeft: return (byte)(cState.DpadLeft ? 255 : 0);
+                case DS4Controls.DpadRight: return (byte)(cState.DpadRight ? 255 : 0);
+                case DS4Controls.PS: return (byte)(cState.PS ? 255 : 0);
+                case DS4Controls.Cross: return (byte)(cState.Cross ? 255 : 0);
+                case DS4Controls.Square: return (byte)(cState.Square ? 255 : 0);
+                case DS4Controls.Triangle: return (byte)(cState.Triangle ? 255 : 0);
+                case DS4Controls.Circle: return (byte)(cState.Circle ? 255 : 0);
+                case DS4Controls.LXNeg: return cState.LX;
+                case DS4Controls.LYNeg: return cState.LY;
+                case DS4Controls.RXNeg: return cState.RX;
+                case DS4Controls.RYNeg: return cState.RY;
+                case DS4Controls.LXPos: return (byte)(cState.LX - 127 < 0 ? 0 : (cState.LX - 127));
+                case DS4Controls.LYPos: return (byte)(cState.LY - 123 < 0 ? 0 : (cState.LY - 123));
+                case DS4Controls.RXPos: return (byte)(cState.RX - 125 < 0 ? 0 : (cState.RX - 125));
+                case DS4Controls.RYPos: return (byte)(cState.RY - 127 < 0 ? 0 : (cState.RY - 127));
+                case DS4Controls.L2: return cState.L2;
+                case DS4Controls.R2: return cState.R2;
+            }
+            return 0;
+        }
+
+        public static bool getBoolMapping(DS4Controls control, DS4State cState)
+        {
+            switch (control)
+            {
+                case DS4Controls.Share: return cState.Share;
+                case DS4Controls.Options: return cState.Options;
+                case DS4Controls.L1: return cState.L1;
+                case DS4Controls.R1: return cState.R1;
+                case DS4Controls.L3: return cState.L3;
+                case DS4Controls.R3: return cState.R3;
+                case DS4Controls.DpadUp: return cState.DpadUp;
+                case DS4Controls.DpadDown: return cState.DpadDown;
+                case DS4Controls.DpadLeft: return cState.DpadLeft;
+                case DS4Controls.DpadRight: return cState.DpadRight;
+                case DS4Controls.PS: return cState.PS;
+                case DS4Controls.Cross: return cState.Cross;
+                case DS4Controls.Square: return cState.Square;
+                case DS4Controls.Triangle: return cState.Triangle;
+                case DS4Controls.Circle: return cState.Circle;
+                case DS4Controls.LXNeg: return cState.LX < 55;
+                case DS4Controls.LYNeg: return cState.LY < 55;
+                case DS4Controls.RXNeg: return cState.RX < 55;
+                case DS4Controls.RYNeg: return cState.RY < 55;
+                case DS4Controls.LXPos: return cState.LX > 200;
+                case DS4Controls.LYPos: return cState.LY > 200;
+                case DS4Controls.RXPos: return cState.RX > 200;
+                case DS4Controls.RYPos: return cState.RY > 200;
+                case DS4Controls.L2: return cState.L2 > 100;
+                case DS4Controls.R2: return cState.R2 > 100;
+            }
+            return false;
+        }
+
+        public static byte getXYAxisMapping(DS4Controls control, DS4State cState, bool alt = false)
+        {
+            byte trueVal = 0;
+            byte falseVal = 127;
+            if (alt)
+            {
+                trueVal = 255;
+            }
+            switch (control)
+            {
+                case DS4Controls.Share: return (byte)(cState.Share ? trueVal : falseVal);
+                case DS4Controls.Options: return (byte)(cState.Options ? trueVal : falseVal);
+                case DS4Controls.L1: return (byte)(cState.L1 ? trueVal : falseVal);
+                case DS4Controls.R1: return (byte)(cState.R1 ? trueVal : falseVal);
+                case DS4Controls.L3: return (byte)(cState.L3 ? trueVal : falseVal);
+                case DS4Controls.R3: return (byte)(cState.R3 ? trueVal : falseVal);
+                case DS4Controls.DpadUp: return (byte)(cState.DpadUp ? trueVal : falseVal);
+                case DS4Controls.DpadDown: return (byte)(cState.DpadDown ? trueVal : falseVal);
+                case DS4Controls.DpadLeft: return (byte)(cState.DpadLeft ? trueVal : falseVal);
+                case DS4Controls.DpadRight: return (byte)(cState.DpadRight ? trueVal : falseVal);
+                case DS4Controls.PS: return (byte)(cState.PS ? trueVal : falseVal);
+                case DS4Controls.Cross: return (byte)(cState.Cross ? trueVal : falseVal);
+                case DS4Controls.Square: return (byte)(cState.Square ? trueVal : falseVal);
+                case DS4Controls.Triangle: return (byte)(cState.Triangle ? trueVal : falseVal);
+                case DS4Controls.Circle: return (byte)(cState.Circle ? trueVal : falseVal);
+                case DS4Controls.L2: return (byte)(cState.L2 == 255 ? trueVal : falseVal);
+                case DS4Controls.R2: return (byte)(cState.R2 == 255 ? trueVal : falseVal);
+            }
+
+            if (!alt)
+            {
+                switch (control)
+                {
+                    case DS4Controls.LXNeg: return cState.LX;
+                    case DS4Controls.LYNeg: return cState.LY;
+                    case DS4Controls.RXNeg: return cState.RX;
+                    case DS4Controls.RYNeg: return cState.RY;
+                    case DS4Controls.LXPos: return (byte)(255 - cState.LX);
+                    case DS4Controls.LYPos: return (byte)(255 - cState.LY);
+                    case DS4Controls.RXPos: return (byte)(255 - cState.RX);
+                    case DS4Controls.RYPos: return (byte)(255 - cState.RY);
+                }
+            }
+            else
+            {
+                switch (control)
+                {
+                    case DS4Controls.LXNeg: return (byte)(255 - cState.LX);
+                    case DS4Controls.LYNeg: return (byte)(255 - cState.LY);
+                    case DS4Controls.RXNeg: return (byte)(255 - cState.RX);
+                    case DS4Controls.RYNeg: return (byte)(255 - cState.RY);
+                    case DS4Controls.LXPos: return cState.LX;
+                    case DS4Controls.LYPos: return cState.LY;
+                    case DS4Controls.RXPos: return cState.RX;
+                    case DS4Controls.RYPos: return cState.RY;
+                }
+            }
+            return 0;
+        }
+
+        //Returns false for any bool, 
+        //if control is one of the xy axis returns 127
+        //if its a trigger returns 0
+        public static void resetToDefaultValue(DS4Controls control, ref DS4State cState)
+        {
+            switch (control)
+            {
+                case DS4Controls.Share: cState.Share = false; break;
+                case DS4Controls.Options: cState.Options = false; break;
+                case DS4Controls.L1: cState.L1 = false; break;
+                case DS4Controls.R1: cState.R1 = false; break;
+                case DS4Controls.L3: cState.L3 = false; break;
+                case DS4Controls.R3: cState.R3 = false; break;
+                case DS4Controls.DpadUp: cState.DpadUp = false; break;
+                case DS4Controls.DpadDown: cState.DpadDown = false; break;
+                case DS4Controls.DpadLeft: cState.DpadLeft = false; break;
+                case DS4Controls.DpadRight: cState.DpadRight = false; break;
+                case DS4Controls.PS: cState.PS = false; break;
+                case DS4Controls.Cross: cState.Cross = false; break;
+                case DS4Controls.Square: cState.Square = false; break;
+                case DS4Controls.Triangle: cState.Triangle = false; break;
+                case DS4Controls.Circle: cState.Circle = false; break;
+                case DS4Controls.LXNeg: cState.LX = 127; break;
+                case DS4Controls.LYNeg: cState.LY = 127; break;
+                case DS4Controls.RXNeg: cState.RX = 127; break;
+                case DS4Controls.RYNeg: cState.RY = 127; break;
+                case DS4Controls.LXPos: cState.LX = 127; break;
+                case DS4Controls.LYPos: cState.LY = 127; break;
+                case DS4Controls.RXPos: cState.RX = 127; break;
+                case DS4Controls.RYPos: cState.RY = 127; break;
+                case DS4Controls.L2: cState.L2 = 0; break;
+                case DS4Controls.R2: cState.R2 = 0; break;
+            }
+        }
+
+
+        // Arthritis mode, compensate for cumulative pressure F=kx on the triggers by allowing the user to remap the entire trigger to just the initial portion.
+        private static byte[,]  leftTriggerMap = new byte[4,256], rightTriggerMap = new byte[4,256];
+        private static double[] leftTriggerMiddle = new double[4], // linear trigger remapping, 0.5 is in the middle of 0 and 255 from the native controller.
+            oldLeftTriggerMiddle = new double[4],
+            rightTriggerMiddle = new double[4], oldRightTriggerMiddle = new double[4];
+        private static void initializeTriggerMap(byte[,] map, double triggerMiddle, int deviceNum)
+        {
+            double midpoint = 256.0 * triggerMiddle;
+            for (uint x = 0; x <= 255; x++)
+            {
+                double mapped;
+                if (x < midpoint) // i.e. with standard 0.5, 0..127->0..127, etc.; with 0.25, 0..63->0..127 and 64..255->128..255\
+                    mapped = (x * 0.5 / triggerMiddle);
+                else
+                    mapped = 128.0 + 128.0 * (x - midpoint) / (256.0 - midpoint);
+                map[deviceNum, x] = (byte)mapped;
+            }
+
+        }
+        public static byte mapLeftTrigger(byte orig, int deviceNum)
+        {
+            leftTriggerMiddle[deviceNum] = Global.getLeftTriggerMiddle(deviceNum);
+            if (leftTriggerMiddle[deviceNum] != oldLeftTriggerMiddle[deviceNum])
+            {
+                oldLeftTriggerMiddle[deviceNum] = leftTriggerMiddle[deviceNum];
+                initializeTriggerMap(leftTriggerMap, leftTriggerMiddle[deviceNum],deviceNum);
+            }
+            return leftTriggerMap[deviceNum, orig];
+        }
+        public static byte mapRightTrigger(byte orig, int deviceNum)
+        {
+            rightTriggerMiddle[deviceNum] = Global.getRightTriggerMiddle(deviceNum);
+            if (rightTriggerMiddle[deviceNum] != oldRightTriggerMiddle[deviceNum])
+            {
+                oldRightTriggerMiddle[deviceNum] = rightTriggerMiddle[deviceNum];
+                initializeTriggerMap(rightTriggerMap, rightTriggerMiddle[deviceNum], deviceNum);
+            }
+            return rightTriggerMap[deviceNum,orig];
+        }
+    }
+}

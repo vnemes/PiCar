@@ -1,0 +1,86 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{53A2B0E9-F72E-47DF-9575-1B58B70E49D0}</ProjectGuid>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>DS4BLE</RootNamespace>
+    <AssemblyName>DS4BLE</AssemblyName>
+    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Data.SQLite">
+      <HintPath>SQLiteLib\System.Data.SQLite.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="HdiLibrary\Extensions.cs" />
+    <Compile Include="HdiLibrary\HidDevice.cs" />
+    <Compile Include="HdiLibrary\HidDeviceAttributes.cs" />
+    <Compile Include="HdiLibrary\HidDeviceCapabilities.cs" />
+    <Compile Include="HdiLibrary\HidDeviceEventMonitor.cs" />
+    <Compile Include="HdiLibrary\HidDevices.cs" />
+    <Compile Include="HdiLibrary\NativeMethods.cs" />
+    <Compile Include="MyDS4.cs" />
+    <Compile Include="NetSocket.cs" />
+    <Compile Include="Program.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ScpControl\BusDevice.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="ScpControl\BusDevice.Designer.cs" />
+    <Compile Include="ScpControl\DS4Device.cs" />
+    <Compile Include="ScpControl\Mapping.cs" />
+    <Compile Include="ScpControl\Mouse.cs" />
+    <Compile Include="ScpControl\ScpDevice.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="ScpControl\ScpDevice.Designer.cs" />
+    <Compile Include="ScpControl\ScpHub.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="ScpControl\ScpHub.Designer.cs" />
+    <Compile Include="ScpControl\ScpUtil.cs" />
+    <Compile Include="ScpControl\Touchpad.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="HdiLibrary\Properties\" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>
