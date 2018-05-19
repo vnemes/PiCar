@@ -47,6 +47,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DBHandler.cs" />
     <Compile Include="HdiLibrary\Extensions.cs" />
     <Compile Include="HdiLibrary\HidDevice.cs" />
     <Compile Include="HdiLibrary\HidDeviceAttributes.cs" />
