@@ -39,13 +39,17 @@ namespace DS4BLE
         private HidDevice pad;
         private byte[] inputData = new byte[64];
         private State cState, nState; //respresents current/next state used for flipping
-        private bool isGyro = false, isCamera = false;
+        private bool isGyro = false, isCamera = false, killSwitch = false;
         private NetSocket ns = new NetSocket("192.168.10.125");
         private DateTime connectTime, disconnectTime;
+        private const string DATABASE_FILE = "DB.sqlite";
         private const string CAMERA_COMMAND = "/C D:\\Software\\VLC\\vlc.exe tcp/h264://192.168.10.1:1324/ -f";
         private System.Diagnostics.Process process;
+        private double distance = 0;
 
 
+        //Maps data read from USB from the byte array inp into our readable structure
+        //http://miku.sega.com/futuretone/manual/img/controls.png for details on button mapping
         private void mapButtons(byte[] inp)
         {
             nState.LX = inp[1];
@@ -65,12 +69,17 @@ namespace DS4BLE
             nState.gyroX = gyroCompute(BitConverter.ToInt16(inp, 19));
         }
 
+
+        //Checks which buttons were pressed and triggers corresponding action
         private void switches()
         {
             if (nState.Triangle && !(cState.Triangle)) isGyro = !isGyro;
             if (nState.Square && !(cState.Square)) startVideoStream();
+            if (nState.Options && !(cState.Options == false)) killSwitch = true;
         }
 
+
+        //Starts a video stream from the car's camera using VLC
         private void startVideoStream()
         {
             if (!isCamera)
@@ -89,12 +98,8 @@ namespace DS4BLE
                 Console.WriteLine("Video stream already started!");
         }
 
-        private bool killSwitch()
-        {
-            if ((nState.Options == true) && (cState.Options == false)) return true;
-            else return false;
-        }
 
+        //Applies correction to the value read by the gyroscope to match the value read from moving the analogue stick
         private short gyroCompute(short sh)
         {
             sh *= -1;
@@ -107,28 +112,16 @@ namespace DS4BLE
             return sh;
         }
 
-        public string gyroStatus()
-        {
-            int LX;
-            if (!isGyro)
-            {
-                LX = nState.LX;
-            }
-            else
-            {
-                LX = nState.gyroX;
-            }
 
-            LX = LX * 2;
-            LX = LX - 256;
-            return LX.ToString();
+        //Calculates distance traveled this session
+        private void addDistance(byte val)
+        {
+            val -= 60;
+            double x = (val * 0.4) / 195;
+            distance += x;
         }
 
-        private void outDebug()
-        {
-            //Console.Out.WriteLine("Accel:" + nState.R2 + "  Brake:" + nState.L2 + "  Steering:" + gyroStatus() + "  Gyro:" + isGyro);
-        }
-
+        //Packages data related to speed, direction and steering into 4 bytes to be sent over WiFi
         private byte[] getData(State st)
         {
             byte[] data = new byte[4];
@@ -137,11 +130,13 @@ namespace DS4BLE
             {
                 data[0] = 0x00;
                 data[1] = st.L2;
+                if ((st.L2 > 60) && st.Equals(nState)) addDistance(st.L2);
             }
             else
             {
                 data[0] = 0x01;
                 data[1] = st.R2;
+                if ((st.R2 > 60) && st.Equals(nState)) addDistance(st.R2);
             }
 
             int LX;
@@ -169,11 +164,11 @@ namespace DS4BLE
                 if (LX > 255) LX = 255;
                 data[3] = Convert.ToByte(LX);
             }
-
-            Console.Out.WriteLine(data[0] + " " + data[1] + " " + data[2] + " " + data[3] + " ");
             return data;
         }
 
+
+        //Sends data over the WiFi only when a change has occurred when comparing the last 2 read values
         private void sendData()
         {
             byte[] current = getData(nState);
@@ -181,26 +176,11 @@ namespace DS4BLE
             if ((current[1] != prev[1]) || (current[3] != prev[3])) ns.sendData(current);
         }
 
-        private void getDate()
-        {
-            Console.Out.WriteLine(connectTime.Day + "/" + connectTime.Month + "/" + connectTime.Year +
-                                  " " + connectTime.Hour + ":" + connectTime.Minute + ":" + connectTime.Second +
-                                  " to " + disconnectTime.Hour + ":" + disconnectTime.Minute + ":" +
-                                  disconnectTime.Second);
-        }
-
-        private void createDB()
-        {
-        }
-
-        public void work()
+        public void init()
         {
             try
             {
                 IEnumerable<HidDevice> devices = HidDevices.Enumerate(0x054C, 0x09CC);
-                Console.Out.WriteLine(devices.Count());
-                Thread.Sleep(2000);
-
                 foreach (HidDevice device in devices)
                 {
                     Console.Out.WriteLine("Found Controller: VID:" + device.Attributes.VendorHexId + " PID:" +
@@ -208,38 +188,47 @@ namespace DS4BLE
                     device.OpenDevice(Global.getUseExclusiveMode());
                     if (device.IsOpen)
                     {
-                        //Console.Out.WriteLine("TEST");
-                        pad = device;
-                        cState = new State();
+                        pad = device;               
+                        cState = new State();       //Initializes gamepad states
                         nState = new State();
                         nState.Options = false;
-                        ns.connectStream();
+                        Console.Out.WriteLine("Attempting Connection");
+                        ns.connectStream();         //Connects over WiFi
                         connectTime = DateTime.Now;
-                        while (!killSwitch())
-                        {
-                            cState = nState;
-                            pad.ReadFile(inputData);
-                            mapButtons(inputData);
-                            switches();
-                            sendData();
-                            outDebug();
-                            Thread.Sleep(millisecondsTimeout: 50);
-                        }
+                        DBHandler.init(DATABASE_FILE);
+                        Console.Out.WriteLine("Initialization Successful");
 
-                        ns.closeStream();
+                        run();                      //Start reading data and sending it over, as explained further below
+
+                        ns.closeStream();           //Disconnects from WiFi
                         disconnectTime = DateTime.Now;
+                        DBHandler.publish(connectTime, disconnectTime, distance);   //Saves info to database
+                        DBHandler.close();
                     }
                 }
 
                 if (devices.Count() == 0)
                 {
-                    Console.Out.WriteLine("No device found");
+                    Console.Out.WriteLine("No device found, exiting");
                     Thread.Sleep(3000);
                 }
             }
             catch (Exception e)
             {
                 Console.Out.WriteLine(e.StackTrace);
+            }
+        }
+
+        public void run()
+        {
+            while (!killSwitch)
+            {
+                cState = nState;
+                pad.ReadFile(inputData);                    //Reads polled data from USB byte by byte
+                mapButtons(inputData);                      //Maps data that we need to gamepad buttons
+                switches();                                 //Triggers actions on button presses
+                sendData();                                 //Sends data over WiFi to the car
+                Thread.Sleep(millisecondsTimeout: 50);
             }
         }
     }
