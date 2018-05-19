@@ -1,4 +1,5 @@
 ﻿using System;
+using System.CodeDom;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,26 +9,26 @@ using ScpControl;
 
 namespace DS4BLE
 {
-
     static class Con
     {
         public const int TRIANGLE = 0b10000000;
-        public const int CIRCLE =   0b01000000;
-        public const int CROSS =    0b00100000;
-        public const int SQUARE =   0b00010000;
-        public const int R3 =       0b10000000;
-        public const int L3 =       0b01000000;
-        public const int OPT =      0b00100000;
-        public const int SHARE =    0b00010000;
-        public const int R1 =       0b00000010;
-        public const int L1 =       0b00000001;
-
+        public const int CIRCLE = 0b01000000;
+        public const int CROSS = 0b00100000;
+        public const int SQUARE = 0b00010000;
+        public const int R3 = 0b10000000;
+        public const int L3 = 0b01000000;
+        public const int OPT = 0b00100000;
+        public const int SHARE = 0b00010000;
+        public const int R1 = 0b00000010;
+        public const int L1 = 0b00000001;
     }
 
     public struct State
     {
         public byte LX, LY, RX, RY, L2, R2;
+
         public bool Square, Triangle, Circle, Cross, Share, Options, TouchButton, L1, R1, L3, R3, PS;
+
         //public bool DpadUp, DpadRight, DpadDown, DpadLeft;
         public short gyroX;
     }
@@ -38,9 +39,12 @@ namespace DS4BLE
         private HidDevice pad;
         private byte[] inputData = new byte[64];
         private State cState, nState; //respresents current/next state used for flipping
-        private bool isGyro=false;
+        private bool isGyro = false, isCamera = false;
         private NetSocket ns = new NetSocket("192.168.10.125");
         private DateTime connectTime, disconnectTime;
+        private const string CAMERA_COMMAND = "/C D:\\Software\\VLC\\vlc.exe tcp/h264://192.168.10.1:1324/ -f";
+        private System.Diagnostics.Process process;
+
 
         private void mapButtons(byte[] inp)
         {
@@ -50,7 +54,7 @@ namespace DS4BLE
             nState.RY = inp[4];
             nState.L2 = inp[8];
             nState.R2 = inp[9];
-            
+
             nState.Triangle = ((inp[5] & Con.TRIANGLE) == Con.TRIANGLE);
             nState.Circle = ((inp[5] & Con.CIRCLE) == Con.CIRCLE);
             nState.Square = ((inp[5] & Con.SQUARE) == Con.SQUARE);
@@ -64,19 +68,30 @@ namespace DS4BLE
         private void switches()
         {
             if (nState.Triangle && !(cState.Triangle)) isGyro = !isGyro;
-            if (nState.Square && !(cState.Square)) takeScreenshot();
+            if (nState.Square && !(cState.Square)) startVideoStream();
         }
 
-        private void takeScreenshot()
+        private void startVideoStream()
         {
-            byte[] data = new byte[]{ 0x55,0,0,0};
-            ns.sendData(data);
-            Console.Out.WriteLine("SCREENSHOT");
+            if (!isCamera)
+            {
+                process = new System.Diagnostics.Process();
+                System.Diagnostics.ProcessStartInfo startInfo = new System.Diagnostics.ProcessStartInfo();
+                startInfo.WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden;
+                startInfo.FileName = "cmd.exe";
+                startInfo.Arguments = CAMERA_COMMAND;
+                process.StartInfo = startInfo;
+                process.Start();
+                isCamera = true;
+            }
+            else
+
+                Console.WriteLine("Video stream already started!");
         }
 
         private bool killSwitch()
         {
-            if ((nState.Options==true) && (cState.Options==false)) return true;
+            if ((nState.Options == true) && (cState.Options == false)) return true;
             else return false;
         }
 
@@ -101,8 +116,9 @@ namespace DS4BLE
             }
             else
             {
-                LX=nState.gyroX;
+                LX = nState.gyroX;
             }
+
             LX = LX * 2;
             LX = LX - 256;
             return LX.ToString();
@@ -117,8 +133,16 @@ namespace DS4BLE
         {
             byte[] data = new byte[4];
 
-            if (st.L2 > 10) { data[0] = 0x00; data[1] = st.L2; }
-            else { data[0] = 0x01; data[1] = st.R2; }
+            if (st.L2 > 10)
+            {
+                data[0] = 0x00;
+                data[1] = st.L2;
+            }
+            else
+            {
+                data[0] = 0x01;
+                data[1] = st.R2;
+            }
 
             int LX;
             if (!isGyro)
@@ -129,13 +153,15 @@ namespace DS4BLE
             {
                 LX = st.gyroX;
             }
+
             LX = LX * 2;
             LX = LX - 256;
             if (LX >= 0)
             {
                 data[2] = 0x01;
                 if (LX > 255) LX = 255;
-                data[3] = Convert.ToByte(LX); }
+                data[3] = Convert.ToByte(LX);
+            }
             else
             {
                 LX = LX * (-1);
@@ -143,7 +169,8 @@ namespace DS4BLE
                 if (LX > 255) LX = 255;
                 data[3] = Convert.ToByte(LX);
             }
-            Console.Out.WriteLine(data[0] + " "+ data[1] + " "+ data[2] + " "+ data[3] + " ");
+
+            Console.Out.WriteLine(data[0] + " " + data[1] + " " + data[2] + " " + data[3] + " ");
             return data;
         }
 
@@ -157,13 +184,13 @@ namespace DS4BLE
         private void getDate()
         {
             Console.Out.WriteLine(connectTime.Day + "/" + connectTime.Month + "/" + connectTime.Year +
-                            " " + connectTime.Hour + ":" + connectTime.Minute + ":" + connectTime.Second +
-                            " to " + disconnectTime.Hour + ":" + disconnectTime.Minute + ":" + disconnectTime.Second);
+                                  " " + connectTime.Hour + ":" + connectTime.Minute + ":" + connectTime.Second +
+                                  " to " + disconnectTime.Hour + ":" + disconnectTime.Minute + ":" +
+                                  disconnectTime.Second);
         }
 
         private void createDB()
         {
-            
         }
 
         public void work()
@@ -171,11 +198,13 @@ namespace DS4BLE
             try
             {
                 IEnumerable<HidDevice> devices = HidDevices.Enumerate(0x054C, 0x09CC);
-                Console.Out.WriteLine(devices.Count()); Thread.Sleep(2000);
-                
+                Console.Out.WriteLine(devices.Count());
+                Thread.Sleep(2000);
+
                 foreach (HidDevice device in devices)
                 {
-                    Console.Out.WriteLine("Found Controller: VID:" + device.Attributes.VendorHexId + " PID:" + device.Attributes.ProductHexId);
+                    Console.Out.WriteLine("Found Controller: VID:" + device.Attributes.VendorHexId + " PID:" +
+                                          device.Attributes.ProductHexId);
                     device.OpenDevice(Global.getUseExclusiveMode());
                     if (device.IsOpen)
                     {
@@ -186,7 +215,7 @@ namespace DS4BLE
                         nState.Options = false;
                         ns.connectStream();
                         connectTime = DateTime.Now;
-                        while(!killSwitch())
+                        while (!killSwitch())
                         {
                             cState = nState;
                             pad.ReadFile(inputData);
@@ -196,11 +225,14 @@ namespace DS4BLE
                             outDebug();
                             Thread.Sleep(millisecondsTimeout: 50);
                         }
+
                         ns.closeStream();
                         disconnectTime = DateTime.Now;
                     }
                 }
-                if (devices.Count() == 0) {
+
+                if (devices.Count() == 0)
+                {
                     Console.Out.WriteLine("No device found");
                     Thread.Sleep(3000);
                 }
