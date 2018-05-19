@@ -13,7 +13,7 @@ namespace DS4BLE
     {
         private static string DateTimeSQL(DateTime dt)
         {
-            string DTF = "{0}-{1}-{2} {3}:{4}:{5}.{6}";
+            string DTF = "{0}-{1}-{2} {3}:{4}:{5}";
             return string.Format(DTF, dt.Year, dt.Month, dt.Day, dt.Hour, dt.Minute, dt.Second, dt.Millisecond);
         }
 
