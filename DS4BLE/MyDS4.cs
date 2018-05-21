@@ -203,6 +203,7 @@ namespace DS4BLE
                         ns.closeStream();           //Disconnects from WiFi
                         disconnectTime = DateTime.Now;
                         DBHandler.publish(connectTime, disconnectTime, distance);   //Saves info to database
+                        DBHandler.printTable();
                         DBHandler.close();
                     }
                 }

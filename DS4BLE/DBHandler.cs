@@ -37,6 +37,7 @@ namespace DS4BLE
         //Initializes and opens the database from the location given by str
         public static void init(String str)
         {
+            Console.WriteLine("Starting Database");
             if (File.Exists(str))
             {
                 db = new SQLiteConnection("Data Source=" + str + ";Version=3;");
@@ -93,7 +94,7 @@ namespace DS4BLE
                 Console.Out.Write("Connection Time: " + reader["Connect"] + ", ");
                 Console.Out.Write("Disconnect Time: " + reader["Disconnect"] + ", ");
                 Console.Out.Write("IP: " + reader["IP"] + ", ");
-                Console.Out.WriteLine("Distance: " + reader["distance"]);
+                Console.Out.WriteLine("Distance: " + reader["distance"] + 'm');
             }
         }
 
