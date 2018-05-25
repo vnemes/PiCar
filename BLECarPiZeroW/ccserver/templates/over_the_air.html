@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Over the air update</title>
+    <style>
+        input {
+            display: block;
+        }
+
+        input[type=radio] {
+            display: inline;
+        }
+
+        .center {
+            padding: 1rem;
+            width: 50%;
+            margin-left: 10%;
+            margin-right: auto;
+        }
+    </style>
+</head>
+<body>
+<h1>Over the Air Update Utility</h1>
+<p>Warning! This feature is dangerous and could provoke irreversible damages.</p>
+<p>Filename must mach module name!</p>
+<form class="center" method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ form }}
+    <br><br>
+    <input type="submit" value="Submit"/>
+</form>
+</body>
+</html>
