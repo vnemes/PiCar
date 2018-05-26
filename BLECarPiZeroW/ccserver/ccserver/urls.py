@@ -22,4 +22,5 @@ urlpatterns = [
     url(r'^sensor/', include('sensors.urls')),
     url(r'^control/', include('controls.urls')),
     url(r'^administration/', include('administration.urls')),
+    url('^accounts/', include('django.contrib.auth.urls')),
 ]
