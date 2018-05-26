@@ -50,7 +50,7 @@ class OtaForm(forms.Form):
         # ('/Users/denis/PycharmProjects/blecar/BLECar/BLECarPiZeroW/ccserver/test.zip', 'Test')
     )
 
-    module = forms.ChoiceField(widget=forms.RadioSelect, choices=CHOICES)
+    module = forms.ChoiceField(choices=CHOICES)
     data_file = forms.FileField()
 
 

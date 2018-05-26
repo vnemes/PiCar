@@ -61,7 +61,12 @@ class GPSSensor(APIView):
     permission_classes = (PublicEndpoint,)
 
     def get(self, request):
-        return Response({"message": "Not implemented"}, status=status.HTTP_200_OK)
+        object = bus.get_object("picar.sensor.gps", "/picar/sensor/gps")
+        interface = dbus.Interface(object, "picar.sensor.gps")
+
+        data = interface.getCoords()
+
+        return Response(data, status=status.HTTP_200_OK)
 
     def post(self, reqest):
         try:
