@@ -199,6 +199,7 @@ public class ControllerActivity extends Activity {
     private void enableDisableCamera(boolean enableCamera) {
         if (enableCamera) {
             new ServiceRequest(this, IP).request(ServiceEnum.PICAMERA_SERVICE, CommandEnum.RESTART);
+            //delay start of camera by 1 second to make sure the service was fully enabled
             new Handler().postDelayed(new Runnable() {
                 @Override
                 public void run() {
@@ -215,7 +216,7 @@ public class ControllerActivity extends Activity {
                     fragTran.add(R.id.video_frame, videoFragment);
                     fragTran.commit();
                 }
-            }, 500);
+            }, 1000);
 
         } else {
             // send a request to stop the picamera service
