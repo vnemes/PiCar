@@ -22,6 +22,7 @@ import java.nio.ByteBuffer;
 import java.util.Arrays;
 
 
+import vendetta.blecar.ControllerActivity;
 import vendetta.blecar.R;
 import vendetta.blecar.camera.dependencies.Camera;
 import vendetta.blecar.camera.dependencies.HttpReader;
@@ -348,7 +349,8 @@ public class VideoFragment extends Fragment implements TextureView.SurfaceTextur
 
 				// create the reader
 				 // todo use default source here
-				camera.source.address="192.168.10.1";
+				camera.source.address= ControllerActivity.getIP().substring(7);
+				Log.d("DEBUG",camera.source.address);
 				camera.source.port=1324;
 				camera.source.width=1280;
 				camera.source.height=720;
