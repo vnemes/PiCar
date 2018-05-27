@@ -1,6 +1,8 @@
 [Unit]
 Description=A systemd service for the PiCarControllerDBUS component.
+Wants=pigpiod.service
 After=network.target
+After=pigpiod.service
 
 [Service]
 User=root
