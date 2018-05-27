@@ -80,3 +80,13 @@ A D-BUS service contains the object, which implements an interface.
 
 The security of D-BUS is handled by policy files.
 
+### Over the Air Update
+
+Over the air updates are supported and handled by the web interface at the endpoint /administration/ota.
+In order to access the endpoint the user must first login at /admin, after that the user will be indentified by a 
+session cookie that is set automatically after the login.
+
+The user can then proceed to /administration/ota and update the desired services. In order to tighten security, only
+a few whitelisted services can be updated, otherwise every file on the system could be updated with OTA, other services
+can be added on request.
+
