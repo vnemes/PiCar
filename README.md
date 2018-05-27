@@ -7,9 +7,10 @@
 * The system must provide its users an interface to control a Radio-Controlled Car via WiFi/Bluetooth through an Android application.
 * The system shall offer speed and steering control in order to move the car.
 * The system will provide a live video feed to its users when controlling the car through the Android application.
+* The system will provide the means to retrieve its current location (coordinates).
 * The system may offer safety features such as automatic braking, speed limiting and collision avoidance.
 * The system may offer computer vision features, such as object recognition and automatic lane detection.
-* The system must be modular, providing ease of adding a new component (e.g. GPS module).
+* The system must be modular, providing ease of adding a new component (e.g. Accelerometer module).
 
 ## System Overview 
 
@@ -24,10 +25,10 @@ The overview of the system is depicted in **Figure 1**.
 **Steering Controller extension** provides a set of services in order to control the DC motor responsible with steering the wheels of the car.    
 **Ultrasonic Sensor extension** contains the low-level driver responsible with the *HC-SR04* sensor. The module provides cyclic readings of the distance to any obstacle in front of the vehicle, accesible through the service registered on DBus.    
 **Camera extension** is the service responsible with capturing the stream from the RPi Camera v2 and forwarding it to the network, where it can be accesible to the *Mobile controller & consumer*.    
-**Accelerometer extension** represents the driver of the *GY-521* accelerometer & gyroscope sensor. The module provides a set of services through which the current speed and direction is determined.    
+**GPS extension** represents the driver of the *VN2828U7G5LF* GPS sensor. The module provides a service through which the current latitude, longitude and altitude can be retrieved.    
 **Remote Control subsystem** is the interface through which the embedded system is controlled. Its implementation consists of a Django Webserver through which internet connection and routing is performed.    
 **Mobile controller & consumer** represents the *Android* application used to control the vehicle, view various metrics from the sensors (e.g. speed, distance), and display the video stream transmitted by the embedded subsystem.    
-**OTA Configuration & Upgrade subsystem** is the module making the over-the-air configurations and upgrades to the sensors/the car controller subsystem possible. The subsystem provides an interface for an external user to send upgrade packets to the embedded system in a secure way - user must be authenticated, payload must be digitally signed, the system must be connected to a Wi-Fi Network.    
+**OTA Configuration & Upgrade subsystem** is the module making the over-the-air configurations and upgrades to the sensors/the car controller subsystem possible. The subsystem provides an interface for an external user to send upgrade packets to the embedded system in a secure way - user must be authenticated and the system must be connected to a Wi-Fi Network.    
 **Web interface** contains the *mainenance console* togheder with the update & configure panel used by an external administrator to modify various modules of the embedded system remotely.    
 
 ## Hardware Design
@@ -37,12 +38,18 @@ The hardware circuit design is depicted in **Figure 2**.
 <p align="center">
   <i><b>Figure 2 - Hardware Diagram</b></i>
 </p>
+
+The real assembly of the system is shown in **Figure 3**.
+![Figure 3](Docs/Figure3.PNG?raw=true "Figure 3")
+<p align="center">
+  <i><b>Figure 3 - Real Assembly</b></i>
+</p>
  
 ## WebServer
-The WebServer architecture is depicted in **Figure 3**.
-![Figure 3](Docs/Figure3.png?raw=true "Figure 3")
+The WebServer architecture is depicted in **Figure 4**.
+![Figure 4](Docs/Figure4.png?raw=true "Figure 4")
 <p align="center">
-  <i><b>Figure 3 - WebServer Architecture</b></i>
+  <i><b>Figure 4 - WebServer Architecture</b></i>
 </p>
 
 The web server acts like a completely isolated module by itself. I donsen't have any dependecies on the sensor and accuator services. The communication of the web server and other components is handled via D-BUS.
