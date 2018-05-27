@@ -8,29 +8,31 @@ import com.android.volley.toolbox.JsonObjectRequest;
 
 import org.json.JSONException;
 
+import vendetta.blecar.ControllerActivity;
 import vendetta.blecar.http.HTTPHandlerSingleton;
 import vendetta.blecar.R;
+import vendetta.blecar.http.HTTPRequest;
 
 /**
  * Created by Vendetta on 02-May-18.
  */
 
-public class UltrasonicSensor implements ISensor {
+public class UltrasonicSensor extends HTTPRequest implements ISensor {
 
-    private Context context;
     private double distance;
 
 
     public UltrasonicSensor(Context context) {
-        this.context = context;
+        super(context);
         this.distance = Double.NaN;
     }
 
     public void requestData(){
-        HTTPHandlerSingleton.getInstance(context).addToRequestQueue(new JsonObjectRequest(Request.Method.GET, context.getString(R.string.pi_url) + "/sensor/ultrasonic/", null, response -> {
+        HTTPHandlerSingleton.getInstance(context).addToRequestQueue(new JsonObjectRequest(Request.Method.GET, IP + "/sensor/ultrasonic/", null, response -> {
             Log.d("HTTP",response.toString());
             try {
-                distance = (double) response.get("distance"); // todo add callback to ControllerActivity here
+                distance = (double) response.get("distance");
+                ((ControllerActivity)context).updateDistanceTV(distance);
             } catch (JSONException e) {
                 e.printStackTrace();
             }

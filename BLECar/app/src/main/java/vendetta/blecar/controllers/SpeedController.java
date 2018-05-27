@@ -12,14 +12,14 @@ import org.json.JSONObject;
 import vendetta.blecar.ControllerActivity;
 import vendetta.blecar.http.HTTPHandlerSingleton;
 import vendetta.blecar.R;
+import vendetta.blecar.http.HTTPRequest;
 
 /**
  * Created by Vendetta on 06-May-18.
  */
 
-public class SpeedController {
+public class SpeedController extends HTTPRequest {
 
-    private Context context;
     private static JSONObject jsonObject = new JSONObject();
 
 
@@ -29,11 +29,11 @@ public class SpeedController {
     private int speedLimit;
 
     public SpeedController(Context context) {
-        this.context = context;
+        super(context);
         lastSpeedStr = 0;
         lastSpeedAngle = 0;
         speedLimit = 50;
-        setSpeed(0,0);
+//        setSpeed(0,0);
     }
 
     public void setSpeedStrAngle(int angle, int strength){
@@ -49,7 +49,7 @@ public class SpeedController {
 
         setSpeed(strength,direction);
 
-        ((ControllerActivity)context).updateCrtSpeedTV(direction == 1? strength : -strength);
+        ((ControllerActivity)super.context).updateCrtSpeedTV(direction == 1? strength : -strength);
     }
 
     public void setMaxSpeed(int maxspeed){
@@ -62,7 +62,7 @@ public class SpeedController {
             jsonObject.put("speed",speed);
             jsonObject.put("direction",direction);
             Log.d(getClass().getSimpleName(),jsonObject.toString());
-            HTTPHandlerSingleton.getInstance(context).addToRequestQueue(new JsonObjectRequest(Request.Method.POST,context.getString(R.string.pi_url) + "/control/speed/",jsonObject,null,null));
+            HTTPHandlerSingleton.getInstance(super.context).addToRequestQueue(new JsonObjectRequest(Request.Method.POST,super.IP + "/control/speed/",jsonObject,null,null));
         } catch (JSONException e) {
             e.printStackTrace();
         }
