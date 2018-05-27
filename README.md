@@ -40,7 +40,7 @@ The hardware circuit design is depicted in **Figure 2**.
 </p>
 
 The real assembly of the system is shown in **Figure 3**.
-![Figure 3](Docs/Figure3.PNG?raw=true "Figure 3")
+![Figure 3](Docs/Figure3.png?raw=true "Figure 3")
 <p align="center">
   <i><b>Figure 3 - Real Assembly</b></i>
 </p>
