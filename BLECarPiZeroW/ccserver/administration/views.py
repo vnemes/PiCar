@@ -54,9 +54,29 @@ class OtaForm(forms.Form):
     data_file = forms.FileField()
 
 
+class ServiceForm(forms.Form):
+    CHOICES = (
+        ('gps', 'GPS Service',),
+        ('ultrasonic-sensor', 'UltrasonicSensor Service',),
+        ('picar-controller', 'PiCarController Service'),
+        ('picamera', 'PiCamera Service'),
+    )
+
+    CHOICES2 = {
+        ('start', 'Start'),
+        ('stop', 'Stop'),
+        ('restart', 'Restart'),
+        ('status', 'Status')
+    }
+
+    service = forms.ChoiceField(choices=CHOICES)
+    cmd = forms.ChoiceField(choices=CHOICES2)
+
+
 # horrible code just for demoing purposes.
 @login_required
 def ota(request):
+    sform = ServiceForm()
     if request.method == 'POST':
         form = OtaForm(request.POST, request.FILES)
         if form.is_valid():
@@ -72,4 +92,4 @@ def ota(request):
             return HttpResponse("Done!")
     else:
         form = OtaForm()
-    return render(request, 'over_the_air.html', {'form': form})
+    return render(request, 'over_the_air.html', {'form': form, 'service_form': sform})

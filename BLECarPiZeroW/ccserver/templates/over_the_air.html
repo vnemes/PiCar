@@ -30,5 +30,12 @@
     <br><br>
     <input type="submit" value="Submit"/>
 </form>
+
+<form class="center" method="post" action="/administration/service/">
+    {% csrf_token %}
+    {{ service_form }}
+    <br><br>
+    <input type="submit" value="Submit"/>
+</form>
 </body>
 </html>
