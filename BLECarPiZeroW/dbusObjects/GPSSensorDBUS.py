@@ -31,7 +31,9 @@ class GPSSensorDBUS(dbus.service.Object):
     @dbus.service.method('picar.sensor.gps')
     def getCoords(self):
         """returns the GPS object from the sensor"""
-        return self.gpsSensor.get_gps()
+        gps = self.gpsSensor.get_gps()
+        retVal={'latitude':gps.latitude, 'longitude':gps.longitude, 'altitude':gps.altitude}
+        return dbus.Dictionary(retVal, signature=None)
 
     @dbus.service.method('picar.sensor.gps')
     def quit(self):
