@@ -2,23 +2,23 @@
 <android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/video"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:theme="@style/BLECarTheme"
-    android:id="@+id/video"
     tools:context="vendetta.blecar.ControllerActivity">
 
     <FrameLayout
         android:id="@+id/video_frame"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="385dp"
         android:visibility="invisible"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="1.0">
+        app:layout_constraintVertical_bias="0.0">
 
     </FrameLayout>
 
@@ -232,6 +232,42 @@
         android:visibility="invisible"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/joystick_speed" />
+
+    <EditText
+        android:id="@+id/et_IP"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:ems="10"
+        android:hint="Pi Address"
+        android:inputType="textPersonName"
+        app:layout_constraintBottom_toBottomOf="@+id/pb_connect"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.38"
+        app:layout_constraintStart_toStartOf="@+id/video_frame"
+        app:layout_constraintTop_toTopOf="@+id/video_frame"
+        app:layout_constraintVertical_bias="0.8" />
+
+    <Switch
+        android:id="@+id/sw_connect"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:text="Connection"
+        android:textOff="Remote"
+        android:textOn="Local"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.06"
+        app:layout_constraintStart_toEndOf="@+id/et_IP"
+        app:layout_constraintTop_toTopOf="@+id/video_frame"
+        app:layout_constraintVertical_bias="0.55" />
 
 
 </android.support.constraint.ConstraintLayout>

@@ -15,6 +15,7 @@ import java.util.List;
 
 import vendetta.blecar.ControllerActivity;
 import vendetta.blecar.R;
+import vendetta.blecar.requests.CheckConnectionRequest;
 
 import static android.content.Context.WIFI_SERVICE;
 
@@ -46,7 +47,7 @@ public class PiWiFiManager {
                             WifiManager wifi = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
                             WifiInfo wifiInfo = wifi.getConnectionInfo();
                             if (wifiInfo.getSSID().replaceAll("^\"|\"$", "").equals(context.getString(R.string.pi_wifi_ssid))) {
-                                activity.onConnectionChange(WiFiStateEnum.CONNECTED);
+                                new CheckConnectionRequest(context,context.getString(R.string.pi_url)).connect();
                             } else
                                 activity.onConnectionChange(WiFiStateEnum.DISCONNECTED);
 

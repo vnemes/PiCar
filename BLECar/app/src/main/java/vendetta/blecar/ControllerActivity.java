@@ -9,6 +9,8 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.CompoundButton;
+import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ProgressBar;
 import android.widget.SeekBar;
@@ -27,6 +29,7 @@ import vendetta.blecar.controllers.SpeedController;
 import vendetta.blecar.controllers.SteeringController;
 import vendetta.blecar.http.PiWiFiManager;
 import vendetta.blecar.http.WiFiStateEnum;
+import vendetta.blecar.requests.CheckConnectionRequest;
 import vendetta.blecar.sensors.UltrasonicSensor;
 
 public class ControllerActivity extends Activity {
@@ -34,9 +37,10 @@ public class ControllerActivity extends Activity {
     // UI elements
     private Button connectButton;
     private TextView connectTv, maxSpeedTv, crtSpeedTV, crtSpeedValTV, crtSteeringTV, crtSteeringValTV;
+    private EditText ipInputET;
     private JoystickView joystickSpeed, joystickSteering;
     private ProgressBar pbConnect;
-    private Switch joySelectSw,cameraOnOffSw;
+    private Switch joySelectSw, cameraOnOffSw, connectSw;
     private FrameLayout frameLayout;
     private VideoFragment videoFragment;
 
@@ -47,8 +51,6 @@ public class ControllerActivity extends Activity {
     private boolean isConnectionActive = false;
     private final static String TAG = ControllerActivity.class.getSimpleName();
     private static final int JOYSTICK_UPDATE_INTERVAL = 333; // every 200 ms = 5 times per second
-
-
 
 
     @Override
@@ -65,6 +67,7 @@ public class ControllerActivity extends Activity {
         crtSpeedValTV = findViewById(R.id.tv_crtSpeedVal);
         crtSteeringTV = findViewById(R.id.tv_crtSteering);
         crtSteeringValTV = findViewById(R.id.tv_crtSteeringVal);
+        ipInputET = findViewById(R.id.et_IP);
 
         // Seek bar for controlling maximum speed
         SeekBar simpleSeekBar = findViewById(R.id.seek_maxSpeed);
@@ -88,6 +91,15 @@ public class ControllerActivity extends Activity {
         // Switch for enabling/disabling camera overlay
         cameraOnOffSw = findViewById(R.id.sw_Camera);
         cameraOnOffSw.setOnCheckedChangeListener((compoundButton, b) -> enableDisableCamera(b));
+
+        //Switch for enabling local connection
+        connectSw = findViewById(R.id.sw_connect);
+        connectSw.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+                ipInputET.setVisibility(b ? View.INVISIBLE : View.VISIBLE);
+            }
+        });
 
         // Joystick for controlling speed
         joystickSpeed = findViewById(R.id.joystick_speed);
@@ -137,16 +149,16 @@ public class ControllerActivity extends Activity {
         }
     }
 
-    private void enableDisableCamera(boolean enableCamera){
-        if (enableCamera){
+    private void enableDisableCamera(boolean enableCamera) {
+        if (enableCamera) {
             //todo add http request to start picamera service here
-            Source source = new Source(Source.ConnectionType.RawTcpIp,"192.168.10.1",1324);
-            source.width=1280;
-            source.height=720;
+            Source source = new Source(Source.ConnectionType.RawTcpIp, "192.168.10.1", 1324);
+            source.width = 1280;
+            source.height = 720;
             source.fps = 15;
-            source.bps=1000000;
-            Camera camera = new Camera("picamera",source);
-            Log.d(getClass().getSimpleName(),"camera: " + camera.toString());
+            source.bps = 1000000;
+            Camera camera = new Camera("picamera", source);
+            Log.d(getClass().getSimpleName(), "camera: " + camera.toString());
 
             // get the frame layout
             frameLayout = findViewById(R.id.video_frame);
@@ -185,6 +197,8 @@ public class ControllerActivity extends Activity {
                 connectTv.setText("Connected");
                 connectTv.setTextColor(Color.GREEN);
                 pbConnect.setVisibility(View.INVISIBLE);
+                ipInputET.setVisibility(View.INVISIBLE);
+                connectSw.setVisibility(View.INVISIBLE);
                 crtSpeedTV.setVisibility(View.VISIBLE);
                 crtSpeedValTV.setVisibility(View.VISIBLE);
                 crtSteeringTV.setVisibility(View.VISIBLE);
@@ -199,6 +213,8 @@ public class ControllerActivity extends Activity {
                 isConnectionActive = false;
                 connectButton.setClickable(true);
                 connectButton.setVisibility(View.VISIBLE);
+                ipInputET.setVisibility(connectSw.isChecked() ? View.INVISIBLE : View.VISIBLE);
+                connectSw.setVisibility(View.VISIBLE);
                 joystickSpeed.setEnabled(false);
                 joystickSteering.setEnabled(false);
                 connectTv.setText("Disconnected");
@@ -233,9 +249,12 @@ public class ControllerActivity extends Activity {
 
     public void onConnectBtnPress(View v) {
         Log.d(TAG, "Attempting connection");
-
-        if (!PiWiFiManager.connectToWiFiAP(getApplicationContext()))
-            Toast.makeText(this, "Cannot connect to "+ getResources().getString(R.string.pi_wifi_ssid), Toast.LENGTH_SHORT).show();
+        if (connectSw.isChecked()) {
+            if (!PiWiFiManager.connectToWiFiAP(getApplicationContext()))
+                Toast.makeText(this, "Cannot connect to " + getResources().getString(R.string.pi_wifi_ssid), Toast.LENGTH_SHORT).show();
+        } else {
+            new CheckConnectionRequest(this, "http://" + ipInputET.getText().toString()).connect();
+        }
     }
 
 
@@ -247,12 +266,13 @@ public class ControllerActivity extends Activity {
         builder.setTitle("Confirm exit");
         builder.setMessage("Do you want to exit the application?");
         builder.setPositiveButton("Exit", (dialog, id) -> finish());
-        builder.setNegativeButton("Cancel", (dialog, id) -> {});
+        builder.setNegativeButton("Cancel", (dialog, id) -> {
+        });
         builder.show();
     }
 
     @Override
-    public void onStop(){
+    public void onStop() {
         // unregister wifi connection receiver in order not to leak it
         unregisterReceiver(PiWiFiManager.getReceiver());
         super.onStop();
