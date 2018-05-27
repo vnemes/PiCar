@@ -348,7 +348,6 @@ public class VideoFragment extends Fragment implements TextureView.SurfaceTextur
 				decoder = MediaCodec.createDecoderByType("video/avc");
 
 				// create the reader
-				 // todo use default source here
 				camera.source.address= ControllerActivity.getIP().substring(7);
 				Log.d("DEBUG",camera.source.address);
 				camera.source.port=1324;
