@@ -6,6 +6,8 @@ import android.app.FragmentTransaction;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.HandlerThread;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -30,27 +32,33 @@ import vendetta.blecar.controllers.SteeringController;
 import vendetta.blecar.http.PiWiFiManager;
 import vendetta.blecar.http.WiFiStateEnum;
 import vendetta.blecar.requests.CheckConnectionRequest;
+import vendetta.blecar.requests.CommandEnum;
+import vendetta.blecar.requests.ServiceEnum;
+import vendetta.blecar.requests.ServiceRequest;
 import vendetta.blecar.sensors.UltrasonicSensor;
 
 public class ControllerActivity extends Activity {
 
     // UI elements
-    private Button connectButton;
-    private TextView connectTv, maxSpeedTv, crtSpeedTV, crtSpeedValTV, crtSteeringTV, crtSteeringValTV;
+    private Button connectButton, gpsButton;
+    private TextView connectTv, maxSpeedTv, crtSpeedTV, crtSpeedValTV, crtSteeringTV, crtSteeringValTV, distanceTV;
     private EditText ipInputET;
     private JoystickView joystickSpeed, joystickSteering;
     private ProgressBar pbConnect;
-    private Switch joySelectSw, cameraOnOffSw, connectSw;
+    private Switch joySelectSw, cameraOnOffSw, connectSw, ultrasonicSw;
     private FrameLayout frameLayout;
     private VideoFragment videoFragment;
 
     // Sensors
     private SpeedController speedController;
     private SteeringController steeringController;
+    private UltrasonicSensor ultrasonicSensor;
 
     private boolean isConnectionActive = false;
     private final static String TAG = ControllerActivity.class.getSimpleName();
     private static final int JOYSTICK_UPDATE_INTERVAL = 333; // every 200 ms = 5 times per second
+    private HandlerThread handlerThread = null;
+    public static String IP = null;
 
 
     @Override
@@ -60,6 +68,7 @@ public class ControllerActivity extends Activity {
 
 
         connectButton = findViewById(R.id.btn_connect);
+        gpsButton = findViewById(R.id.btn_locate);
         connectTv = findViewById(R.id.tv_conn_stat);
         maxSpeedTv = findViewById(R.id.tv_maxSpeed);
         pbConnect = findViewById(R.id.pb_connect);
@@ -67,6 +76,7 @@ public class ControllerActivity extends Activity {
         crtSpeedValTV = findViewById(R.id.tv_crtSpeedVal);
         crtSteeringTV = findViewById(R.id.tv_crtSteering);
         crtSteeringValTV = findViewById(R.id.tv_crtSteeringVal);
+        distanceTV = findViewById(R.id.tv_Distance);
         ipInputET = findViewById(R.id.et_IP);
 
         // Seek bar for controlling maximum speed
@@ -94,10 +104,33 @@ public class ControllerActivity extends Activity {
 
         //Switch for enabling local connection
         connectSw = findViewById(R.id.sw_connect);
-        connectSw.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
-                ipInputET.setVisibility(b ? View.INVISIBLE : View.VISIBLE);
+        connectSw.setOnCheckedChangeListener((compoundButton, b) -> ipInputET.setVisibility(b ? View.INVISIBLE : View.VISIBLE));
+
+        //Switch for enabling distance measurement via ultrasonic sensor
+        ultrasonicSw = findViewById(R.id.sw_ultrasonic);
+        ultrasonicSw.setOnCheckedChangeListener((compoundButton, b) -> {
+            if (b) {
+                // send a request to start the ultrasonic sensor service
+                new ServiceRequest(this, IP).request(ServiceEnum.ULTRASONIC_SERVICE, CommandEnum.RESTART);
+                handlerThread = new HandlerThread("HandlerThread");
+                handlerThread.start();
+                Handler handler = new Handler(handlerThread.getLooper());
+                Runnable runnable = new Runnable() {
+                    @Override
+                    public void run() {
+                        ultrasonicSensor.requestData();
+                        handler.postDelayed(this, 1000);
+                    }
+                };
+                handler.postDelayed(runnable, 1000);
+
+                distanceTV.setVisibility(View.VISIBLE);
+            } else {
+                handlerThread.quit();
+                //stop the ultrasonic sensor service
+                new ServiceRequest(this, IP).request(ServiceEnum.ULTRASONIC_SERVICE, CommandEnum.STOP);
+                distanceTV.setText("Initializing..");
+                distanceTV.setVisibility(View.INVISIBLE);
             }
         });
 
@@ -114,13 +147,11 @@ public class ControllerActivity extends Activity {
         // Speed & Steering controllers
         speedController = new SpeedController(this);
         steeringController = new SteeringController(this);
+        ultrasonicSensor = new UltrasonicSensor(this);
 
 
         //start monitoring wifi connection changes
         registerReceiver(PiWiFiManager.getReceiver(), PiWiFiManager.getFilter());
-
-        UltrasonicSensor mSensor = new UltrasonicSensor(this);
-        mSensor.requestData(); // todo: instead of this, send a request to establish a connection
 
     }
 
@@ -151,26 +182,33 @@ public class ControllerActivity extends Activity {
 
     private void enableDisableCamera(boolean enableCamera) {
         if (enableCamera) {
-            //todo add http request to start picamera service here
-            Source source = new Source(Source.ConnectionType.RawTcpIp, "192.168.10.1", 1324);
-            source.width = 1280;
-            source.height = 720;
-            source.fps = 15;
-            source.bps = 1000000;
-            Camera camera = new Camera("picamera", source);
-            Log.d(getClass().getSimpleName(), "camera: " + camera.toString());
+            new ServiceRequest(this,IP).request(ServiceEnum.PICAMERA_SERVICE,CommandEnum.RESTART);
+            new Handler().postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    Camera camera = new Camera(Source.ConnectionType.RawTcpIp,"picamera",IP,1324);
+                    Log.d(getClass().getSimpleName(), "camera: " + camera.toString());
 
-            // get the frame layout
-            frameLayout = findViewById(R.id.video_frame);
-            frameLayout.setVisibility(View.VISIBLE);
+                    // get the frame layout
+                    frameLayout = findViewById(R.id.video_frame);
+                    frameLayout.setVisibility(View.VISIBLE);
 
-            // create the video fragment
-            videoFragment = VideoFragment.newInstance(camera);
-            FragmentTransaction fragTran = getFragmentManager().beginTransaction();
-            fragTran.add(R.id.video_frame, videoFragment);
-            fragTran.commit();
+                    // create the video fragment
+                    videoFragment = VideoFragment.newInstance(camera);
+                    FragmentTransaction fragTran = getFragmentManager().beginTransaction();
+                    fragTran.add(R.id.video_frame, videoFragment);
+                    fragTran.commit();
+                }
+            },500);
+//            Source source = new Source(Source.ConnectionType.RawTcpIp, IP, 1324);
+//            source.width = 1280;
+//            source.height = 720;
+//            source.fps = 15;
+//            source.bps = 1000000;
+
         } else {
-            //todo add http request to start picamera service here
+            // send a request to stop the picamera service
+            new ServiceRequest(this,IP).request(ServiceEnum.PICAMERA_SERVICE,CommandEnum.STOP);
             videoFragment.stop();
             videoFragment = null;
             frameLayout.setVisibility(View.INVISIBLE);
@@ -193,6 +231,8 @@ public class ControllerActivity extends Activity {
                 isConnectionActive = true;
                 connectButton.setClickable(false);
                 connectButton.setVisibility(View.INVISIBLE);
+                gpsButton.setClickable(true);
+                gpsButton.setVisibility(View.VISIBLE);
                 enableControls(joySelectSw.isChecked());
                 connectTv.setText("Connected");
                 connectTv.setTextColor(Color.GREEN);
@@ -205,14 +245,24 @@ public class ControllerActivity extends Activity {
                 crtSteeringValTV.setVisibility(View.VISIBLE);
                 joySelectSw.setVisibility(View.VISIBLE);
                 cameraOnOffSw.setVisibility(View.VISIBLE);
+                ultrasonicSw.setVisibility(View.VISIBLE);
+                speedController.setIp(IP);
+                steeringController.setIp(IP);
+                ultrasonicSensor.setIp(IP);
+                //todo set ip of every sensor here
+
+                new ServiceRequest(this,IP).request(ServiceEnum.CONTROLLER_SERVICE,CommandEnum.START);
                 Toast.makeText(this, "Connected to " + getResources().getString(R.string.pi_wifi_ssid), Toast.LENGTH_SHORT).show();
 
 
                 break;
             case DISCONNECTED:
                 isConnectionActive = false;
+                pbConnect.setVisibility(View.INVISIBLE);
                 connectButton.setClickable(true);
                 connectButton.setVisibility(View.VISIBLE);
+                gpsButton.setClickable(false);
+                gpsButton.setVisibility(View.INVISIBLE);
                 ipInputET.setVisibility(connectSw.isChecked() ? View.INVISIBLE : View.VISIBLE);
                 connectSw.setVisibility(View.VISIBLE);
                 joystickSpeed.setEnabled(false);
@@ -225,6 +275,8 @@ public class ControllerActivity extends Activity {
                 crtSpeedValTV.setVisibility(View.INVISIBLE);
                 crtSteeringTV.setVisibility(View.INVISIBLE);
                 crtSteeringValTV.setVisibility(View.INVISIBLE);
+                distanceTV.setVisibility(View.INVISIBLE);
+                ultrasonicSw.setVisibility(View.INVISIBLE);
                 joySelectSw.setVisibility(View.INVISIBLE);
                 cameraOnOffSw.setVisibility(View.INVISIBLE);
                 Toast.makeText(this, "Disconnected", Toast.LENGTH_SHORT).show();
@@ -246,14 +298,25 @@ public class ControllerActivity extends Activity {
         this.crtSteeringValTV.setText(value + "%");
     }
 
+    public void updateDistanceTV(double value) {
+        this.distanceTV.setText(value + " cm");
+    }
+
+    public static String getIP(){
+        return IP;
+    }
+
 
     public void onConnectBtnPress(View v) {
+        onConnectionChange(WiFiStateEnum.CONNECTING);
         Log.d(TAG, "Attempting connection");
         if (connectSw.isChecked()) {
+            IP = getApplicationContext().getString(R.string.pi_url);
             if (!PiWiFiManager.connectToWiFiAP(getApplicationContext()))
                 Toast.makeText(this, "Cannot connect to " + getResources().getString(R.string.pi_wifi_ssid), Toast.LENGTH_SHORT).show();
         } else {
-            new CheckConnectionRequest(this, "http://" + ipInputET.getText().toString()).connect();
+            IP = "http://" + ipInputET.getText().toString();
+            new CheckConnectionRequest(this, IP).connect();
         }
     }
 
@@ -265,17 +328,26 @@ public class ControllerActivity extends Activity {
 
         builder.setTitle("Confirm exit");
         builder.setMessage("Do you want to exit the application?");
-        builder.setPositiveButton("Exit", (dialog, id) -> finish());
+        builder.setPositiveButton("Exit", (dialog, id) -> { super.onBackPressed(); });
         builder.setNegativeButton("Cancel", (dialog, id) -> {
         });
         builder.show();
     }
 
     @Override
-    public void onStop() {
+    public void onDestroy() {
+        if (handlerThread != null)
+            handlerThread.quit();
+        if (IP != null && isConnectionActive){ // disable all services enabled during runtime of the app
+            new ServiceRequest(this,IP).request(ServiceEnum.PICAMERA_SERVICE,CommandEnum.STOP);
+            new ServiceRequest(this,IP).request(ServiceEnum.ULTRASONIC_SERVICE,CommandEnum.STOP);
+            new ServiceRequest(this,IP).request(ServiceEnum.CONTROLLER_SERVICE,CommandEnum.STOP);
+            new ServiceRequest(this,IP).request(ServiceEnum.GPS_SERVICE,CommandEnum.STOP);
+        }
         // unregister wifi connection receiver in order not to leak it
         unregisterReceiver(PiWiFiManager.getReceiver());
-        super.onStop();
+        finish();
+        super.onDestroy();
     }
 }
 
