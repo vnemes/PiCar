@@ -27,6 +27,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = ["*"]
 
+CORS_ORIGIN_ALLOW_ALL = True
 
 # Application definition
 
@@ -45,6 +46,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    # 'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -122,8 +124,11 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.0/howto/static-files/
 
+STATIC_ROOT = BASE_DIR
 STATIC_URL = '/static/'
-
+STATICFILES_DIRS = (
+        os.path.join(BASE_DIR, "static"),
+)
 
 # Rest framework settings
 REST_FRAMEWORK = {
