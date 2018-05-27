@@ -12,24 +12,24 @@ import org.json.JSONObject;
 import vendetta.blecar.ControllerActivity;
 import vendetta.blecar.http.HTTPHandlerSingleton;
 import vendetta.blecar.R;
+import vendetta.blecar.http.HTTPRequest;
 
 /**
  * Created by Vendetta on 06-May-18.
  */
 
-public class SteeringController {
+public class SteeringController extends HTTPRequest {
 
-    private Context context;
     private static JSONObject jsonObject = new JSONObject();
 
     private int lastSteerStr;
     private int lastSteerAngl;
 
     public SteeringController(Context context) {
-        this.context = context;
+        super(context);
         lastSteerStr = 0;
         lastSteerAngl = 0;
-        setSteering(0, 0);
+//        setSteering(0, 0);
     }
 
     public void setSteeringAnglStr(int angle, int strength) {
@@ -51,7 +51,7 @@ public class SteeringController {
             jsonObject.put("steering", steering);
             jsonObject.put("direction", direction);
             Log.d(getClass().getSimpleName(), jsonObject.toString());
-            HTTPHandlerSingleton.getInstance(context).addToRequestQueue(new JsonObjectRequest(Request.Method.POST, context.getString(R.string.pi_url) + "/control/steering/", jsonObject, null, null));
+            HTTPHandlerSingleton.getInstance(context).addToRequestQueue(new JsonObjectRequest(Request.Method.POST, IP + "/control/steering/", jsonObject, null, null));
         } catch (JSONException e) {
             e.printStackTrace();
         }

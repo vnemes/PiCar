@@ -28,16 +28,22 @@ class UltrasonicSensor:
             gpio.output(self.BCM_PIN_TRIG,True)
             time.sleep(0.00001)
             gpio.output(self.BCM_PIN_TRIG,False)
-            while gpio.input(self.BCM_PIN_ECHO) == 0:
+            start = time.time()
+            stop = time.time() #timeout strategy in case of missed response
+            while gpio.input(self.BCM_PIN_ECHO) == 0 and stop - start < 300:
                 pulse_start = time.time()
-            while gpio.input(self.BCM_PIN_ECHO) == 1:
+                stop = time.time()
+            start = time.time()
+            stop = time.time() #timeout strategy in case of missed response
+            while gpio.input(self.BCM_PIN_ECHO) == 1 and stop - start < 300:
                 pulse_end = time.time()
+                stop = time.time()
 
             pulse_duration = pulse_end - pulse_start
             dist = pulse_duration * self.SOUND_SPEED_CONSTANT
             self.distance = round(dist,2)
             # print('computed distance: ' + str(self.distance) + ' cm')
-            time.sleep(0.2)
+            time.sleep(0.5)
 
     def get_distance(self):
         return self.distance

@@ -23,6 +23,13 @@
             </intent-filter>
         </activity>
 
+        <meta-data
+            android:name="com.google.android.gms.version"
+            android:value="@integer/google_play_services_version" />
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="AIzaSyDbP49IevZuRotzlXk9ApgyYNvRNaylV9Y"/>
+
     </application>
 
     <uses-feature android:name="android.hardware.bluetooth_le" android:required="true"/>
