@@ -97,3 +97,17 @@ The user can then proceed to /administration/ota and update the desired services
 a few whitelisted services can be updated, otherwise every file on the system could be updated with OTA, other services
 can be added on request.
 
+### References:
+* https://pinout.xyz/
+* https://www.modmypi.com/blog/hc-sr04-ultrasonic-range-sensor-on-the-raspberry-pi
+* http://docs.gunicorn.org/en/stable/deploy.html
+* https://developer.android.com/training/volley/
+* https://code.tutsplus.com/tutorials/streaming-video-in-android-apps--cms-19888
+* https://tutorials-raspberrypi.com/measuring-rotation-and-acceleration-raspberry-pi/
+* https://pypi.org/project/smbus-cffi/0.5.1/
+* https://www.linuxjournal.com/article/10455
+* https://www.raspberrypi.org/documentation/configuration/wireless/access-point.md#internet-sharing
+* https://github.com/ShawnBaker/RPiCameraViewer
+* https://stackoverflow.com/questions/6146131/python-gps-module-reading-latest-gps-data
+* https://tutorials-raspberrypi.com/measuring-rotation-and-acceleration-raspberry-pi/
+
