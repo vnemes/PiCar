@@ -29,6 +29,9 @@ ALLOWED_HOSTS = ["*"]
 
 CORS_ORIGIN_ALLOW_ALL = True
 
+# Dissalow new registrations
+REGISTRATION_OPEN = False
+
 # Application definition
 
 INSTALLED_APPS = [
