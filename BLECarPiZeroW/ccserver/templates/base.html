@@ -1,11 +1,32 @@
 {% load i18n %}
+{% load static %}
 <html>
-
 <head>
+    <link rel="stylesheet" href="{% static 'bootstrap.min.css' %}">
+    <script src="{% static 'jquery-3.3.1.min.js' %}" defer></script>
+    <script src="{% static 'bootstrap.min.js' %}" defer></script>
 </head>
 
-    <div id="content">
-        {% block content %}{% endblock %}
-    </div>
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <a class="navbar-brand" href="#">PiCar</a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
 
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <ul class="navbar-nav mr-auto">
+            <li>
+                <a class="nav-link" href="{% url 'admin:index' %}">Admin</a>
+            </li>
+            <li>
+                <a class="nav-link" href="{% url 'administration:ota-view' %}">OTA</a>
+            </li>
+        </ul>
+    </div>
+</nav>
+
+<div id="content">
+    {% block content %}{% endblock %}
+</div>
 </html>

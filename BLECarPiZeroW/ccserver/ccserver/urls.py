@@ -16,17 +16,13 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from django.conf.urls import url, include
-
-from administration.views import ota
-from ccserver import settings
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('accounts/profile/', ota),
     path('accounts/', include('django.contrib.auth.urls')),
     url(r'^sensor/', include('sensors.urls')),
     url(r'^control/', include('controls.urls')),
-    url(r'^administration/', include('administration.urls')),
+    url('administration/', include('administration.urls', 'administration')),
 ]
 urlpatterns += staticfiles_urlpatterns()

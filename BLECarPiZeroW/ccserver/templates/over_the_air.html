@@ -1,65 +1,41 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Over the air update</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.0/css/bootstrap.min.css"
-          integrity="sha384-9gVQ4dYFwwWSjIDZnLEWnxCjeSWFphJiwGPXr1jddIhOegiu1FwO5qRGvFXOdJZ4" crossorigin="anonymous">
-
-    <style>
-        select, label, input {
-            display: block;
-        }
-
-        input[type=radio] {
-            display: inline;
-        }
-
-        .center {
-            padding: 1rem;
-            width: 50%;
-            margin-left: 10%;
-            margin-right: auto;
-        }
-    </style>
-</head>
-<body>
-<main class="container">
-    <div class="row py-5">
-        <div class="col-md-12">
-            <h1>Over the Air Update Utility</h1>
-            <p>Warning! This feature is dangerous and could provoke irreversible damage.</p>
+{% extends "base.html" %}
+{% block content %}
+    <main class="container">
+        <div class="row py-5">
+            <div class="col-md-12">
+                <h1>Over the Air Update Utility</h1>
+                <p>Warning! This feature is dangerous and could provoke irreversible damage.</p>
+                <hr>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6 col-lg-6 col-12 col-sm-12 col-xs-12">
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        {{ form }}
+                    </div>
+                    <br><br>
+                    <input type="submit" class="btn btn-primary" value="Submit"/>
+                </form>
+            </div>
+            <div class="col-md-6 col-lg-6 col-12 col-sm-12 col-xs-12">
+                <form method="post" action="/administration/service/">
+                    {% csrf_token %}
+                    {{ service_form }}
+                    <br><br>
+                    <input type="submit" class="btn btn-primary" value="Submit"/>
+                </form>
+            </div>
             <hr>
         </div>
-    </div>
-    <div class="row">
-        <form method="post" enctype="multipart/form-data">
-            {% csrf_token %}
-            <div class="form-group">
-                {{ form }}
-            </div>
-            <br><br>
-            <input type="submit" class="btn btn-primary" value="Submit"/>
-        </form>
-    </div>
-    <hr>
-    <div class="row">
-        <form method="post" action="/administration/service/">
-            {% csrf_token %}
-            {{ service_form }}
-            <br><br>
-            <input type="submit" class="btn btn-primary" value="Submit"/>
-        </form>
-        <hr>
-    </div>
-    <script>
-        (function () {
-            document.getElementById('id_module').classList.add('form-control');
-            document.getElementById('id_service').classList.add('form-control');
-            document.getElementById('id_cmd').classList.add('form-control');
-            document.getElementById('id_data_file').classList.add('form-control-file');
-        })();
-    </script>
-</main>
-</body>
-</html>
+        <script>
+            (function () {
+                document.getElementById('id_module').classList.add('form-control');
+                document.getElementById('id_service').classList.add('form-control');
+                document.getElementById('id_cmd').classList.add('form-control');
+                document.getElementById('id_data_file').classList.add('form-control-file');
+            })();
+        </script>
+    </main>
+{% endblock %}
