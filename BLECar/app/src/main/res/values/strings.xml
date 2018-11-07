@@ -7,4 +7,9 @@
     <string name="error_lost_connection">Lost the connection to the camera.</string>
     <string name="error_couldnt_connect">Couldn\'t connect to the camera.</string>
     <string name="video">Video</string>
+    <string name="title_activity_settings">SettingsActivity</string>
+    <string name="pref_key_joystick">joystick_one-two</string>
+    <string name="pref_key_speed_seek">seek_bar_speed</string>
+    <string name="pref_key_enable_camera">enable_camera_stream</string>
+    <string name="pref_key_enable_ultrasonic">enable_distance_measurement</string>
 </resources>

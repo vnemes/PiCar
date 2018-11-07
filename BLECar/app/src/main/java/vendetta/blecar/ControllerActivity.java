@@ -4,10 +4,13 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.FragmentTransaction;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.View;
 import android.view.Window;
@@ -40,6 +43,7 @@ import vendetta.blecar.controllers.SpeedController;
 import vendetta.blecar.controllers.SteeringController;
 import vendetta.blecar.http.PiWiFiManager;
 import vendetta.blecar.http.WiFiStateEnum;
+import vendetta.blecar.preferences.SettingsFragment;
 import vendetta.blecar.requests.CheckConnectionRequest;
 import vendetta.blecar.requests.CommandEnum;
 import vendetta.blecar.requests.ServiceEnum;
@@ -55,10 +59,9 @@ public class ControllerActivity extends Activity {
     private EditText ipInputET;
     private JoystickView joystickSpeed, joystickSteering;
     private ProgressBar pbConnect;
-    private Switch joySelectSw, cameraOnOffSw, connectSw, ultrasonicSw;
+    private Switch connectSw;
     private FrameLayout frameLayout;
     private VideoFragment videoFragment;
-    private SeekBar maxSpeedSeekBar;
 
     // Sensors
     private SpeedController speedController;
@@ -67,6 +70,8 @@ public class ControllerActivity extends Activity {
     private GPSSensor gpsSensor;
 
     private boolean isConnectionActive = false;
+    private boolean onrTwoJoysticks, enableCamera, enableUltrasonic;
+    private int maxSpeed;
     private final static String TAG = ControllerActivity.class.getSimpleName();
     private static final int JOYSTICK_UPDATE_INTERVAL = 333; // every 200 ms = 5 times per second
     private HandlerThread handlerThread = null;
@@ -78,6 +83,11 @@ public class ControllerActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_remote);
 
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
+        onrTwoJoysticks = preferences.getBoolean(this.getString(R.string.pref_key_joystick), false);
+        maxSpeed = preferences.getInt(this.getString(R.string.pref_key_speed_seek), 50);
+        enableCamera = preferences.getBoolean(this.getString(R.string.pref_key_enable_camera), false);
+        enableUltrasonic = preferences.getBoolean(this.getString(R.string.pref_key_enable_ultrasonic), false);
 
         connectButton = findViewById(R.id.btn_connect);
         gpsButton = findViewById(R.id.btn_locate);
@@ -91,63 +101,39 @@ public class ControllerActivity extends Activity {
         crtSteeringValTV = findViewById(R.id.tv_crtSteeringVal);
         distanceTV = findViewById(R.id.tv_Distance);
         ipInputET = findViewById(R.id.et_IP);
-        maxSpeedSeekBar = findViewById(R.id.seek_maxSpeed);
+        frameLayout = findViewById(R.id.video_frame);
+
 
         // Seek bar for controlling maximum speed
-        maxSpeedSeekBar = findViewById(R.id.seek_maxSpeed);
-        maxSpeedSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-
-            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                updateMaxSpeed(progress);
-            }
-
-            public void onStartTrackingTouch(SeekBar seekBar) {
-            }
-
-            public void onStopTrackingTouch(SeekBar seekBar) {
-            }
-        });
+//        maxSpeedSeekBar = findViewById(R.id.seek_maxSpeed);
+//        maxSpeedSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+//
+//            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+//                updateMaxSpeed(progress);
+//            }
+//
+//            public void onStartTrackingTouch(SeekBar seekBar) {
+//            }
+//
+//            public void onStopTrackingTouch(SeekBar seekBar) {
+//            }
+//        });
 
         // Switch for selecting between 1 or 2 joysticks for controlling speed & steering
-        joySelectSw = findViewById(R.id.sw_Joysticks);
-        joySelectSw.setOnCheckedChangeListener((compoundButton, b) -> enableControls(b));
+//        joySelectSw = findViewById(R.id.sw_Joysticks);
+//        joySelectSw.setOnCheckedChangeListener((compoundButton, b) -> enableControls(b));
 
         // Switch for enabling/disabling camera overlay
-        cameraOnOffSw = findViewById(R.id.sw_Camera);
-        cameraOnOffSw.setOnCheckedChangeListener((compoundButton, b) -> enableDisableCamera(b));
+//        cameraOnOffSw = findViewById(R.id.sw_Camera);
+//        cameraOnOffSw.setOnCheckedChangeListener((compoundButton, b) -> enableDisableCamera(b));
 
         //Switch for enabling local connection
         connectSw = findViewById(R.id.sw_connect);
         connectSw.setOnCheckedChangeListener((compoundButton, b) -> ipInputET.setVisibility(b ? View.INVISIBLE : View.VISIBLE));
 
         //Switch for enabling distance measurement via ultrasonic sensor
-        ultrasonicSw = findViewById(R.id.sw_ultrasonic);
-        ultrasonicSw.setOnCheckedChangeListener((compoundButton, b) -> {
-            if (b) {
-                // send a request to start the ultrasonic sensor service
-                new ServiceRequest(this, IP).request(ServiceEnum.ULTRASONIC_SERVICE, CommandEnum.RESTART);
-                handlerThread = new HandlerThread("HandlerThread");
-                handlerThread.start();
-                Handler handler = new Handler(handlerThread.getLooper());
-                loading(true);
-                Runnable runnable = new Runnable() {
-                    @Override
-                    public void run() {
-                        ultrasonicSensor.requestData();
-                        handler.postDelayed(this, 1000);
-                        loading(false);
-                    }
-                };
-                handler.postDelayed(runnable, 1000);
-                distanceTV.setVisibility(View.VISIBLE);
-            } else {
-                handlerThread.quit();
-                //stop the ultrasonic sensor service
-                new ServiceRequest(this, IP).request(ServiceEnum.ULTRASONIC_SERVICE, CommandEnum.STOP);
-                distanceTV.setText("Initializing..");
-                distanceTV.setVisibility(View.INVISIBLE);
-            }
-        });
+//        ultrasonicSw = findViewById(R.id.sw_ultrasonic);
+//        ultrasonicSw.setOnCheckedChangeListener((compoundButton, b) -> enableDisableUltrasonic(b));
 
         // Joystick for controlling speed
         joystickSpeed = findViewById(R.id.joystick_speed);
@@ -166,10 +152,53 @@ public class ControllerActivity extends Activity {
         gpsSensor = new GPSSensor(this);
 
 
+        updateMaxSpeed(maxSpeed);
+        enableDisableUltrasonic(enableUltrasonic);
+        enableControls(onrTwoJoysticks);
+        enableDisableCamera(enableCamera);
+
+
         //start monitoring wifi connection changes
         registerReceiver(PiWiFiManager.getReceiver(), PiWiFiManager.getFilter());
-
     }
+
+    private void enableDisableUltrasonic(boolean b) {
+        if (b) {
+            // send a request to start the ultrasonic sensor service
+            new ServiceRequest(this, IP).request(ServiceEnum.ULTRASONIC_SERVICE, CommandEnum.RESTART);
+            handlerThread = new HandlerThread("HandlerThread");
+            handlerThread.start();
+            Handler handler = new Handler(handlerThread.getLooper());
+            loading(true);
+            Runnable runnable = new Runnable() {
+                @Override
+                public void run() {
+                    ultrasonicSensor.requestData();
+                    handler.postDelayed(this, 1000);
+                    loading(false);
+                }
+            };
+            handler.postDelayed(runnable, 1000);
+            distanceTV.setVisibility(View.VISIBLE);
+        } else {
+            if (handlerThread != null) {
+                handlerThread.quit();
+                //stop the ultrasonic sensor service
+                new ServiceRequest(this, IP).request(ServiceEnum.ULTRASONIC_SERVICE, CommandEnum.STOP);
+                distanceTV.setText("Initializing..");
+                distanceTV.setVisibility(View.INVISIBLE);
+            }
+        }
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
+//        String syncConnPref = sharedPref.getString(, "");
+//todo continue here
+    }
+
 
     private void enableControls(boolean areTwoJoysticksRequired) {
         if (areTwoJoysticksRequired) {
@@ -207,7 +236,6 @@ public class ControllerActivity extends Activity {
                     Log.d(getClass().getSimpleName(), "camera: " + camera.toString());
 
                     // get the frame layout
-                    frameLayout = findViewById(R.id.video_frame);
                     frameLayout.setVisibility(View.VISIBLE);
 
                     // create the video fragment
@@ -221,9 +249,11 @@ public class ControllerActivity extends Activity {
         } else {
             // send a request to stop the picamera service
             new ServiceRequest(this, IP).request(ServiceEnum.PICAMERA_SERVICE, CommandEnum.STOP);
-            videoFragment.stop();
-            videoFragment = null;
-            frameLayout.setVisibility(View.INVISIBLE);
+            if (videoFragment != null) {
+                videoFragment.stop();
+                videoFragment = null;
+                frameLayout.setVisibility(View.INVISIBLE);
+            }
         }
 
     }
@@ -245,7 +275,7 @@ public class ControllerActivity extends Activity {
                 connectButton.setVisibility(View.INVISIBLE);
                 gpsButton.setClickable(true);
                 gpsButton.setVisibility(View.VISIBLE);
-                enableControls(joySelectSw.isChecked());
+                enableControls(onrTwoJoysticks);
                 connectTv.setText("Connected");
                 connectTv.setTextColor(Color.GREEN);
                 pbConnect.setVisibility(View.INVISIBLE);
@@ -257,10 +287,6 @@ public class ControllerActivity extends Activity {
                 crtSteeringValTV.setVisibility(View.VISIBLE);
                 maxSpeedTv.setVisibility(View.VISIBLE);
                 maxTV.setVisibility(View.VISIBLE);
-                joySelectSw.setVisibility(View.VISIBLE);
-                cameraOnOffSw.setVisibility(View.VISIBLE);
-                ultrasonicSw.setVisibility(View.VISIBLE);
-                maxSpeedSeekBar.setVisibility(View.VISIBLE);
                 speedController.setIp(IP);
                 steeringController.setIp(IP);
                 ultrasonicSensor.setIp(IP);
@@ -294,10 +320,6 @@ public class ControllerActivity extends Activity {
                 distanceTV.setVisibility(View.INVISIBLE);
                 maxSpeedTv.setVisibility(View.INVISIBLE);
                 maxTV.setVisibility(View.INVISIBLE);
-                ultrasonicSw.setVisibility(View.INVISIBLE);
-                joySelectSw.setVisibility(View.INVISIBLE);
-                cameraOnOffSw.setVisibility(View.INVISIBLE);
-                maxSpeedSeekBar.setVisibility(View.INVISIBLE);
                 Toast.makeText(this, "Disconnected", Toast.LENGTH_SHORT).show();
                 break;
         }
@@ -329,12 +351,7 @@ public class ControllerActivity extends Activity {
     public void onLocateBtnPress(View v) {
         loading(true);
         new ServiceRequest(this, IP).request(ServiceEnum.GPS_SERVICE, CommandEnum.RESTART);
-        new Handler().postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                gpsSensor.requestData();
-            }
-        }, 10000);
+        new Handler().postDelayed(() -> gpsSensor.requestData(), 10000);
 
     }
 
@@ -367,16 +384,19 @@ public class ControllerActivity extends Activity {
     }
 
     public void onConnectBtnPress(View v) {
-        onConnectionChange(WiFiStateEnum.CONNECTING);
-        Log.d(TAG, "Attempting connection");
-        if (connectSw.isChecked()) {
-            IP = getApplicationContext().getString(R.string.pi_url);
-            if (!PiWiFiManager.connectToWiFiAP(getApplicationContext()))
-                Toast.makeText(this, "Cannot connect to " + getResources().getString(R.string.pi_wifi_ssid), Toast.LENGTH_SHORT).show();
-        } else {
-            IP = "http://" + ipInputET.getText().toString();
-            new CheckConnectionRequest(this, IP).connect();
-        }
+//        onConnectionChange(WiFiStateEnum.CONNECTING);
+//        Log.d(TAG, "Attempting connection");
+//        if (connectSw.isChecked()) {
+//            IP = getApplicationContext().getString(R.string.pi_url);
+//            if (!PiWiFiManager.connectToWiFiAP(getApplicationContext()))
+//                Toast.makeText(this, "Cannot connect to " + getResources().getString(R.string.pi_wifi_ssid), Toast.LENGTH_SHORT).show();
+//        } else {
+//            IP = "http://" + ipInputET.getText().toString();
+//            new CheckConnectionRequest(this, IP).connect();
+//        }
+        //todo remove test code from here
+        Intent intent = new Intent(this, SettingsActivity.class);
+        startActivity(intent);
     }
 
 
