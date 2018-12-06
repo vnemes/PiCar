@@ -384,19 +384,19 @@ public class ControllerActivity extends Activity {
     }
 
     public void onConnectBtnPress(View v) {
-//        onConnectionChange(WiFiStateEnum.CONNECTING);
-//        Log.d(TAG, "Attempting connection");
-//        if (connectSw.isChecked()) {
-//            IP = getApplicationContext().getString(R.string.pi_url);
-//            if (!PiWiFiManager.connectToWiFiAP(getApplicationContext()))
-//                Toast.makeText(this, "Cannot connect to " + getResources().getString(R.string.pi_wifi_ssid), Toast.LENGTH_SHORT).show();
-//        } else {
-//            IP = "http://" + ipInputET.getText().toString();
-//            new CheckConnectionRequest(this, IP).connect();
-//        }
+        onConnectionChange(WiFiStateEnum.CONNECTING);
+        Log.d(TAG, "Attempting connection");
+        if (connectSw.isChecked()) {
+            IP = getApplicationContext().getString(R.string.pi_url);
+            if (!PiWiFiManager.connectToWiFiAP(getApplicationContext()))
+                Toast.makeText(this, "Cannot connect to " + getResources().getString(R.string.pi_wifi_ssid), Toast.LENGTH_SHORT).show();
+        } else {
+            IP = "http://" + ipInputET.getText().toString();
+            new CheckConnectionRequest(this, IP).connect();
+        }
         //todo remove test code from here
-        Intent intent = new Intent(this, SettingsActivity.class);
-        startActivity(intent);
+//        Intent intent = new Intent(this, SettingsActivity.class);
+//        startActivity(intent);
     }
 
 

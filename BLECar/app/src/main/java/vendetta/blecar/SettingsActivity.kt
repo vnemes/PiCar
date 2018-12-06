@@ -3,7 +3,6 @@ package vendetta.blecar
 import android.os.Bundle
 import android.app.Activity
 
-import kotlinx.android.synthetic.main.activity_settings.*
 import vendetta.blecar.preferences.SettingsFragment
 
 class SettingsActivity : Activity() {
