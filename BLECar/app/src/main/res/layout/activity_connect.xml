@@ -14,9 +14,9 @@
         android:layout_marginTop="8dp"
         android:layout_marginEnd="8dp"
         android:layout_marginBottom="8dp"
-        android:text="Connection Method"
-        android:textColor="@color/inactiveTextColor"
+        android:text="Available connections:"
         android:textAppearance="@android:style/TextAppearance.Holo.Large"
+        android:textColor="@color/inactiveTextColor"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
@@ -114,8 +114,11 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
             android:layout_marginTop="16dp"
+            android:layout_marginEnd="8dp"
             android:text="connection Specific Value"
             android:textAppearance="@android:style/TextAppearance.Holo.Medium"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.0"
             app:layout_constraintStart_toEndOf="@+id/connectionSpecificIdTV"
             app:layout_constraintTop_toBottomOf="@+id/ConnectionIV" />
 
@@ -137,10 +140,16 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
             android:layout_marginTop="8dp"
+            android:layout_marginEnd="8dp"
+            android:layout_marginBottom="8dp"
             android:text="Connection Type Value"
             android:textAppearance="@android:style/TextAppearance.Holo.Medium"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.0"
             app:layout_constraintStart_toEndOf="@+id/ignored"
-            app:layout_constraintTop_toBottomOf="@+id/connectionSpecificValueTV" />
+            app:layout_constraintTop_toBottomOf="@+id/connectionSpecificValueTV"
+            app:layout_constraintVertical_bias="0.0" />
 
     </android.support.constraint.ConstraintLayout>
 
@@ -162,7 +171,8 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
-        android:layout_marginBottom="8dp"
+        android:layout_marginBottom="5dp"
+        android:onClick="onEditBtnPress"
         android:text="Edit"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toEndOf="@+id/connectionListView"

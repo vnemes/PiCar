@@ -14,4 +14,7 @@
     <string name="pref_key_enable_ultrasonic">enable_distance_measurement</string>
     <string name="pref_key_first_launch">first_launch</string>
     <string name="pref_key_connection_config">connection_config</string>
+    <string name="connection_name">Connection Name</string>
+    <string name="connection_type">Connection Type</string>
+    <string name="connection_identifier">Identifier</string>
 </resources>
