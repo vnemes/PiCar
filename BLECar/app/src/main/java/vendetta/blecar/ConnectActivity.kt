@@ -52,12 +52,12 @@ class ConnectActivity : Activity(), EditConnDialogFragment.IConnEditable {
                     ConnectionConfig("PiZeroW HotSpot", ConnectionTypeEn.WIFI_LOCAL, "192.168.43.38"))
             // serialize to store as string
 
+            saveConnectionArray()
             sharedPreferences
                     .edit()
                     .putBoolean(getString(R.string.pref_key_first_launch), false)
-                    .apply()
+                    .commit()
 
-            saveConnectionArray()
         } else {
             // retrieve connection list from preferences and deserialize
             val listType = object : TypeToken<ArrayList<ConnectionConfig>>() {}.type
@@ -94,7 +94,7 @@ class ConnectActivity : Activity(), EditConnDialogFragment.IConnEditable {
         sharedPreferences
                 .edit()
                 .putString(getString(R.string.pref_key_connection_config), connectJson)
-                .commit()
+                .apply()
     }
 
     private fun updateSelectedConnectionPanel(desiredConnection : ConnectionConfig) {
@@ -119,10 +119,16 @@ class ConnectActivity : Activity(), EditConnDialogFragment.IConnEditable {
 
     override fun onSaveButtonPress(connectionConfig: ConnectionConfig) {
         connectionArr[connectionArr.indexOf(selectedConnection)] = connectionConfig
-        val x: ArrayAdapter<ConnectionConfig> = connectionListView.adapter as ArrayAdapter<ConnectionConfig>
-        x.notifyDataSetChanged()
+        val tmpAdapter: ArrayAdapter<ConnectionConfig> = connectionListView.adapter as ArrayAdapter<ConnectionConfig>
+        tmpAdapter.notifyDataSetChanged()
         updateSelectedConnectionPanel(connectionConfig)
         saveConnectionArray()
+    }
+
+    fun onConnectBtnPress(view: View){
+        val intent = Intent(this, ControllerActivity::class.java)
+        intent.putExtra(getString(R.string.selected_connection_json_key),  Gson().toJson(selectedConnection))
+        startActivity(intent)
     }
 
     override fun getActiveSelection(): ConnectionConfig {

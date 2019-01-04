@@ -3,7 +3,7 @@
     <!--<string name="PiCarMAC">B8:27:EB:FB:EC:A4</string>-->
     <string name="pi_wifi_ssid">PiZeroCar</string>
     <string name="pi_wifi_pw">P1Password</string>
-    <string name="pi_url">http://192.168.10.1</string>
+    <string name="pi_ap_ip">http://192.168.10.1</string>
     <string name="error_lost_connection">Lost the connection to the camera.</string>
     <string name="error_couldnt_connect">Couldn\'t connect to the camera.</string>
     <string name="video">Video</string>
@@ -17,4 +17,5 @@
     <string name="connection_name">Connection Name</string>
     <string name="connection_type">Connection Type</string>
     <string name="connection_identifier">Identifier</string>
+    <string name="selected_connection_json_key">selected_connection_json_key</string>
 </resources>

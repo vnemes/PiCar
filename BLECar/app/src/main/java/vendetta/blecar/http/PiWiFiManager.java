@@ -10,12 +10,17 @@ import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
+import android.os.Handler;
+import android.widget.Toast;
 
 import java.util.List;
 
 import vendetta.blecar.ControllerActivity;
 import vendetta.blecar.R;
-import vendetta.blecar.requests.CheckConnectionRequest;
+import vendetta.blecar.requests.CommandEnum;
+import vendetta.blecar.requests.HealthCheckCyclicRequest;
+import vendetta.blecar.requests.ServiceEnum;
+import vendetta.blecar.requests.ServiceRequest;
 
 import static android.content.Context.WIFI_SERVICE;
 
@@ -47,7 +52,15 @@ public class PiWiFiManager {
                             WifiManager wifi = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
                             WifiInfo wifiInfo = wifi.getConnectionInfo();
                             if (wifiInfo.getSSID().replaceAll("^\"|\"$", "").equals(context.getString(R.string.pi_wifi_ssid))) {
-                                new CheckConnectionRequest(context,context.getString(R.string.pi_url)).connect();
+                                new ServiceRequest(context, activity.IP)
+                                        .requestForCallback(ServiceEnum.CONTROLLER_SERVICE, CommandEnum.START,
+                                                response -> activity.onConnectionChange(WiFiStateEnum.CONNECTED),
+                                                error -> {
+                                                    Toast.makeText(context, "Cannot connect to " + activity.IP, Toast.LENGTH_SHORT).show();
+                                                    new Handler().postDelayed(() -> activity.onConnectionChange(WiFiStateEnum.DISCONNECTED), 1000);
+                                                });
+
+
                             } else
                                 activity.onConnectionChange(WiFiStateEnum.DISCONNECTED);
 
@@ -73,11 +86,11 @@ public class PiWiFiManager {
         return new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION);
     }
 
-    public static boolean connectToWiFiAP(Context context) {
+    public static boolean connectToWiFiAP(Context context, String ssid) {
 
         WifiConfiguration conf = new WifiConfiguration();
-        conf.SSID = String.format("\"%s\"", context.getString(R.string.pi_wifi_ssid));
-        conf.preSharedKey = String.format("\"%s\"", context.getString(R.string.pi_wifi_pw));
+        conf.SSID = String.format("\"%s\"", ssid);
+        conf.preSharedKey = String.format("\"%s\"", context.getString(R.string.pi_wifi_pw)); // todo remove hardcoded key
 
         WifiManager wifiManager = (WifiManager) context.getSystemService(WIFI_SERVICE);
         int netId = wifiManager.addNetwork(conf);
