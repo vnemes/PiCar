@@ -51,12 +51,12 @@ class PiCarController:
             if direction:
                 self.pi.set_PWM_dutycycle(self.BCM_PIN_STEERING_HIGH, steering)
                 self.pi.set_PWM_dutycycle(self.BCM_PIN_STEERING_LOW, self.GPIO_GROUND)
-                print('speed: ' + str(steering) + ' left')
+                print('steering: ' + str(steering) + ' left')
             else:
 
                 self.pi.set_PWM_dutycycle(self.BCM_PIN_STEERING_HIGH, self.GPIO_GROUND)
                 self.pi.set_PWM_dutycycle(self.BCM_PIN_STEERING_LOW, steering)
-                print('speed: ' + str(steering) + ' right')
+                print('steering: ' + str(steering) + ' right')
 
 
     def stop(self):
