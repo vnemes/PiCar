@@ -104,7 +104,7 @@ class ConnectActivity : Activity(), EditConnDialogFragment.IConnEditable {
         connectionTypeTV.text = selectedConnection.connType.value
         connectionSpecificIdTV.text = selectedConnection.connType.specific
         // todo create image for each connection type
-        connectionIV.setBackgroundColor(Color.parseColor(selectedConnection.connType.img))
+        connectionIV.setImageResource(selectedConnection.connType.img)
     }
 
     fun onSettingsBtnPress(view: View) {
