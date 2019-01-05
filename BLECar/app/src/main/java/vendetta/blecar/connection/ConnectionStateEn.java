@@ -1,10 +1,10 @@
-package vendetta.blecar.http;
+package vendetta.blecar.connection;
 
 /**
  * Created by Vendetta on 29-Apr-18.
  */
 
-public enum WiFiStateEnum {
+public enum ConnectionStateEn {
     CONNECTING,
     CONNECTED,
     DISCONNECTED

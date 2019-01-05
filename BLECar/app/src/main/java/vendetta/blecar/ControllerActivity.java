@@ -37,8 +37,8 @@ import vendetta.blecar.connection.ConnectionConfig;
 import vendetta.blecar.connection.ConnectionTypeEn;
 import vendetta.blecar.controllers.SpeedController;
 import vendetta.blecar.controllers.SteeringController;
-import vendetta.blecar.http.PiWiFiManager;
-import vendetta.blecar.http.WiFiStateEnum;
+import vendetta.blecar.connection.PiWiFiManager;
+import vendetta.blecar.connection.ConnectionStateEn;
 import vendetta.blecar.requests.HealthCheckCyclicRequest;
 import vendetta.blecar.requests.CommandEnum;
 import vendetta.blecar.requests.ServiceEnum;
@@ -61,11 +61,11 @@ public class ControllerActivity extends Activity {
     private GPSSensor gpsSensor;
 
     private boolean isConnectionActive = false;
-    private boolean onrTwoJoysticks;
+    private boolean oneOrTwoJoysticks;
     private final static String TAG = ControllerActivity.class.getSimpleName();
     private static final int JOYSTICK_UPDATE_INTERVAL = 333; // every 333 ms = 3 times per second
     private HandlerThread ultrasonicHandlerThread;
-    private Handler healthCheckHandler;
+    private Handler healthCheckHandler, wifiAPconnectionHandler;
     private ConnectionConfig config;
     public static String IP = null;
 
@@ -88,42 +88,30 @@ public class ControllerActivity extends Activity {
 
         // Joystick for controlling speed
         joystickSpeed = findViewById(R.id.joystick_speed);
-        joystickSpeed.setEnabled(false);
-        joystickSpeed.setVisibility(View.INVISIBLE);
 
         // Joystick for controlling steering
         joystickSteering = findViewById(R.id.joystick_steering);
-        joystickSteering.setEnabled(false);
-        joystickSteering.setVisibility(View.INVISIBLE);
 
         config = new Gson().fromJson(getIntent().getStringExtra(getResources().getString(R.string.selected_connection_json_key)), ConnectionConfig.class);
         Log.d(TAG, "Attempting connection to " + config);
 
+        onConnectionChange(ConnectionStateEn.CONNECTING);
         switch (config.getConnType()) {
             case WIFI_AP:
                 IP = getResources().getString(R.string.pi_ap_ip);
                 //start monitoring wifi connection changes
                 registerReceiver(PiWiFiManager.getReceiver(), PiWiFiManager.getFilter());
-                onConnectionChange(WiFiStateEnum.CONNECTING);
-                if (!PiWiFiManager.connectToWiFiAP(getApplicationContext(),config.getIdentifier()))
-                    Toast.makeText(this, "Cannot connect to " + config.getIdentifier(), Toast.LENGTH_SHORT).show();
+                wifiAPconnectionHandler = new Handler();
+                wifiAPconnectionHandler.postDelayed(() -> onConnectionChange(ConnectionStateEn.DISCONNECTED), 5000);
+                PiWiFiManager.connectToWiFiAP(getApplicationContext(), config.getIdentifier(), getString(R.string.pi_wifi_pw)); // todo remove hardcoded pw
                 break;
             case WIFI_INET: //fall through
             case WIFI_LOCAL:
                 //start monitoring wifi connection changes
-                onConnectionChange(WiFiStateEnum.CONNECTING);
                 if (config.getIdentifier().startsWith("http://"))
                     IP = config.getIdentifier();
                 else IP = "http://" + config.getIdentifier();
-                healthCheckHandler = new Handler();
-                new HealthCheckCyclicRequest(this, IP).connect(healthCheckHandler);
-                new ServiceRequest(this, IP)
-                        .requestForCallback(ServiceEnum.CONTROLLER_SERVICE, CommandEnum.START,
-                                response -> onConnectionChange(WiFiStateEnum.CONNECTED),
-                                error -> {
-                                    Toast.makeText(this, "Cannot connect to " + IP, Toast.LENGTH_SHORT).show();
-                                    new Handler().postDelayed(() -> onConnectionChange(WiFiStateEnum.DISCONNECTED), 1000);
-                                });
+                establishConnection();
                 break;
             case MQTT:
                 break;
@@ -135,11 +123,26 @@ public class ControllerActivity extends Activity {
 
     }
 
+    public void establishConnection() {
+        healthCheckHandler = new Handler();
+        new ServiceRequest(this, IP)
+                .requestForCallback(ServiceEnum.CONTROLLER_SERVICE, CommandEnum.START,
+                        response -> {
+                            onConnectionChange(ConnectionStateEn.CONNECTED);
+                            new HealthCheckCyclicRequest(this, IP).connect(healthCheckHandler);
+                        },
+                        error -> {
+                            Toast.makeText(this, "Cannot connect to " + IP, Toast.LENGTH_SHORT).show();
+                            new Handler().postDelayed(() -> onConnectionChange(ConnectionStateEn.DISCONNECTED), 2000);
+                        });
+
+    }
+
     @Override
     protected void onStart() {
         super.onStart();
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
-        onrTwoJoysticks = preferences.getBoolean(this.getString(R.string.pref_key_joystick), false);
+        oneOrTwoJoysticks = preferences.getBoolean(this.getString(R.string.pref_key_joystick), false);
         int maxSpeed = preferences.getInt(this.getString(R.string.pref_key_speed_seek), 50);
         boolean enableCamera = preferences.getBoolean(this.getString(R.string.pref_key_enable_camera), false);
         boolean enableUltrasonic = preferences.getBoolean(this.getString(R.string.pref_key_enable_ultrasonic), false);
@@ -149,7 +152,7 @@ public class ControllerActivity extends Activity {
         gpsSensor.setIp(IP);
 
         enableDisableUltrasonic(enableUltrasonic);
-        enableControls(onrTwoJoysticks);
+        enableControls(oneOrTwoJoysticks);
         updateMaxSpeed(maxSpeed);
         enableDisableCamera(enableCamera);
     }
@@ -210,7 +213,7 @@ public class ControllerActivity extends Activity {
                 //stop the ultrasonic sensor service
                 new ServiceRequest(this, IP).request(ServiceEnum.ULTRASONIC_SERVICE, CommandEnum.STOP);
             }
-            distanceTV.setText("Initializing..");
+            distanceTV.setText(R.string.ultrasonic_initializing);
             distanceTV.setVisibility(View.INVISIBLE);
         }
     }
@@ -248,18 +251,29 @@ public class ControllerActivity extends Activity {
     }
 
 
-    public void onConnectionChange(WiFiStateEnum connectionState) {
+    public void onConnectionChange(ConnectionStateEn connectionState) {
         switch (connectionState) {
             case CONNECTING:
                 loading(true);
-                connectTv.setText("Connecting");
+                connectTv.setText(R.string.connection_connecting);
                 connectTv.setTextColor(Color.YELLOW);
+                joystickSpeed.setEnabled(false);
+                joystickSteering.setEnabled(false);
+                joystickSpeed.setVisibility(View.INVISIBLE);
+                joystickSteering.setVisibility(View.INVISIBLE);
+                crtSpeedTV.setVisibility(View.INVISIBLE);
+                crtSpeedValTV.setVisibility(View.INVISIBLE);
+                crtSteeringTV.setVisibility(View.INVISIBLE);
+                crtSteeringValTV.setVisibility(View.INVISIBLE);
+                distanceTV.setVisibility(View.INVISIBLE);
+                maxSpeedTv.setVisibility(View.INVISIBLE);
+                maxTV.setVisibility(View.INVISIBLE);
                 break;
 
             case CONNECTED:
                 isConnectionActive = true;
-                enableControls(onrTwoJoysticks);
-                connectTv.setText("Connected");
+                enableControls(oneOrTwoJoysticks);
+                connectTv.setText(R.string.connection_connected);
                 connectTv.setTextColor(Color.GREEN);
                 loading(false);
                 crtSpeedTV.setVisibility(View.VISIBLE);
@@ -275,20 +289,11 @@ public class ControllerActivity extends Activity {
             case DISCONNECTED:
                 isConnectionActive = false;
                 loading(false);
-                joystickSpeed.setEnabled(false);
-                joystickSteering.setEnabled(false);
-                connectTv.setText("Disconnected");
+                connectTv.setText(R.string.connection_disconnected);
                 connectTv.setTextColor(Color.RED);
-                joystickSpeed.setVisibility(View.INVISIBLE);
-                joystickSteering.setVisibility(View.INVISIBLE);
-                crtSpeedTV.setVisibility(View.INVISIBLE);
-                crtSpeedValTV.setVisibility(View.INVISIBLE);
-                crtSteeringTV.setVisibility(View.INVISIBLE);
-                crtSteeringValTV.setVisibility(View.INVISIBLE);
-                distanceTV.setVisibility(View.INVISIBLE);
-                maxSpeedTv.setVisibility(View.INVISIBLE);
-                maxTV.setVisibility(View.INVISIBLE);
                 Toast.makeText(this, "Disconnected", Toast.LENGTH_SHORT).show();
+                // exit the current screen
+                super.onBackPressed();
                 break;
         }
     }
@@ -300,15 +305,15 @@ public class ControllerActivity extends Activity {
     }
 
     public void updateCrtSpeedTV(int value) {
-        this.crtSpeedValTV.setText(value + "%");
+        this.crtSpeedValTV.setText(String.format(Locale.ENGLISH,"%d%%", value));
     }
 
     public void updateCrtSteeringTV(int value) {
-        this.crtSteeringValTV.setText(value + "%");
+        this.crtSteeringValTV.setText(String.format(Locale.ENGLISH,"%d%%", value));
     }
 
     public void updateDistanceTV(double value) {
-        this.distanceTV.setText(value + " cm");
+        this.distanceTV.setText(String.format(Locale.ENGLISH,"%s cm", value));
     }
 
     public static String getIP() {
@@ -356,6 +361,14 @@ public class ControllerActivity extends Activity {
         startActivity(intent);
     }
 
+    public void cancelWifiApTimout() {
+        wifiAPconnectionHandler.removeCallbacksAndMessages(null);
+    }
+
+    public ConnectionConfig getConfig() {
+        return config;
+    }
+
     @Override
     public void onBackPressed() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
@@ -363,7 +376,8 @@ public class ControllerActivity extends Activity {
         builder.setTitle("Back to main menu");
         builder.setMessage("Do you want to return to the main menu?");
         builder.setPositiveButton("Confirm", (dialog, id) -> super.onBackPressed());
-        builder.setNegativeButton("Cancel", (dialog, id) -> {});
+        builder.setNegativeButton("Cancel", (dialog, id) -> {
+        });
         builder.show();
     }
 
@@ -375,16 +389,17 @@ public class ControllerActivity extends Activity {
             healthCheckHandler.removeCallbacksAndMessages(null);
 
 
-        if (IP != null && isConnectionActive) { // disable all services enabled during runtime of the app
+        if (isConnectionActive) { // disable all services enabled during runtime of the app
             new ServiceRequest(this, IP).request(ServiceEnum.PICAMERA_SERVICE, CommandEnum.STOP);
             new ServiceRequest(this, IP).request(ServiceEnum.ULTRASONIC_SERVICE, CommandEnum.STOP);
             new ServiceRequest(this, IP).request(ServiceEnum.CONTROLLER_SERVICE, CommandEnum.STOP);
             new ServiceRequest(this, IP).request(ServiceEnum.GPS_SERVICE, CommandEnum.STOP);
         }
         // unregister wifi connection receiver in order not to leak it
-        if (config.getConnType().equals(ConnectionTypeEn.WIFI_AP))
+        if (config.getConnType().equals(ConnectionTypeEn.WIFI_AP)) {
+            wifiAPconnectionHandler.removeCallbacksAndMessages(null);
             unregisterReceiver(PiWiFiManager.getReceiver());
-//        finish();
+        }
         super.onDestroy();
     }
 }

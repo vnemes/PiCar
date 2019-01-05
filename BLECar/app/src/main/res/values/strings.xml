@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">BLECar</string>
+    <string name="app_name">PiCar</string>
     <!--<string name="PiCarMAC">B8:27:EB:FB:EC:A4</string>-->
     <string name="pi_wifi_ssid">PiZeroCar</string>
     <string name="pi_wifi_pw">P1Password</string>
@@ -18,4 +18,8 @@
     <string name="connection_type">Connection Type</string>
     <string name="connection_identifier">Identifier</string>
     <string name="selected_connection_json_key">selected_connection_json_key</string>
+    <string name="ultrasonic_initializing">Initializing..</string>
+    <string name="connection_connecting">Connecting</string>
+    <string name="connection_connected">Connected</string>
+    <string name="connection_disconnected">Disconnected</string>
 </resources>
