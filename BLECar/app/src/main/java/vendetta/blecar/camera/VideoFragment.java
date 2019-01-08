@@ -1,28 +1,24 @@
 // Copyright © 2016-2017 Shawn Baker using the MIT License.
 package vendetta.blecar.camera;
 
+import android.app.Fragment;
 import android.content.Context;
-import android.graphics.Color;
 import android.graphics.SurfaceTexture;
 import android.media.MediaCodec;
 import android.media.MediaFormat;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.os.Handler;
-import android.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Surface;
 import android.view.TextureView;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.TextView;
 
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 
-
-import vendetta.blecar.ControllerActivity;
 import vendetta.blecar.R;
 import vendetta.blecar.camera.dependencies.Camera;
 import vendetta.blecar.camera.dependencies.HttpReader;
