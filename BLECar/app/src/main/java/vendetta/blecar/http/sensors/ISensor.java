@@ -1,4 +1,4 @@
-package vendetta.blecar.sensors;
+package vendetta.blecar.http.sensors;
 
 /**
  * Created by Vendetta on 06-May-18.

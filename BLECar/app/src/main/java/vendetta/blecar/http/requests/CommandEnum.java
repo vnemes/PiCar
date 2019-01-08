@@ -1,4 +1,4 @@
-package vendetta.blecar.requests;
+package vendetta.blecar.http.requests;
 
 /**
  * Created by Vendetta on 27-May-18.

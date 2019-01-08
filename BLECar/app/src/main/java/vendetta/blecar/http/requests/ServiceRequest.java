@@ -1,4 +1,4 @@
-package vendetta.blecar.requests;
+package vendetta.blecar.http.requests;
 
 import android.content.Context;
 import android.util.Log;

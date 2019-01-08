@@ -1,4 +1,4 @@
-package vendetta.blecar.sensors;
+package vendetta.blecar.http.sensors;
 
 import android.content.Context;
 import android.util.Log;
@@ -10,7 +10,6 @@ import com.android.volley.toolbox.JsonObjectRequest;
 import org.json.JSONException;
 
 import vendetta.blecar.ControllerActivity;
-import vendetta.blecar.R;
 import vendetta.blecar.http.HTTPHandlerSingleton;
 import vendetta.blecar.http.HTTPRequest;
 

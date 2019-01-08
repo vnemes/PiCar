@@ -37,7 +37,7 @@ public class PiWiFiManager {
                     && netInfo.getType() == ConnectivityManager.TYPE_WIFI
                     && netInfo.getExtraInfo().replaceAll("^\"|\"$", "").equals(activity.getConfig().getIdentifier())) {
                 activity.cancelWifiApTimout();
-                activity.establishConnection();
+                activity.establishConnection(activity.getConfig().getAddrValue());
             }
         }
     };

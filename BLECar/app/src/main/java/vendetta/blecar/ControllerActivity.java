@@ -35,16 +35,18 @@ import vendetta.blecar.camera.dependencies.Camera;
 import vendetta.blecar.camera.dependencies.Source;
 import vendetta.blecar.connection.ConnectionConfig;
 import vendetta.blecar.connection.ConnectionTypeEn;
-import vendetta.blecar.controllers.SpeedController;
-import vendetta.blecar.controllers.SteeringController;
+import vendetta.blecar.control.SpeedController;
+import vendetta.blecar.http.control.SpeedControllerHTTP;
+import vendetta.blecar.control.SteeringController;
 import vendetta.blecar.connection.PiWiFiManager;
 import vendetta.blecar.connection.ConnectionStateEn;
-import vendetta.blecar.requests.HealthCheckCyclicRequest;
-import vendetta.blecar.requests.CommandEnum;
-import vendetta.blecar.requests.ServiceEnum;
-import vendetta.blecar.requests.ServiceRequest;
-import vendetta.blecar.sensors.GPSSensor;
-import vendetta.blecar.sensors.UltrasonicSensor;
+import vendetta.blecar.http.control.SteeringControllerHTTP;
+import vendetta.blecar.http.requests.HealthCheckCyclicRequest;
+import vendetta.blecar.http.requests.CommandEnum;
+import vendetta.blecar.http.requests.ServiceEnum;
+import vendetta.blecar.http.requests.ServiceRequest;
+import vendetta.blecar.http.sensors.GPSSensor;
+import vendetta.blecar.http.sensors.UltrasonicSensor;
 
 public class ControllerActivity extends Activity {
 
@@ -65,9 +67,9 @@ public class ControllerActivity extends Activity {
     private final static String TAG = ControllerActivity.class.getSimpleName();
     private static final int JOYSTICK_UPDATE_INTERVAL = 333; // every 333 ms = 3 times per second
     private HandlerThread ultrasonicHandlerThread;
-    private Handler healthCheckHandler, wifiAPconnectionHandler;
+    private Handler healthCheckHandler, wifiAPConnectionHandler;
     private ConnectionConfig config;
-    public static String IP = null;
+    private String effectiveIP = null;
 
 
     @Override
@@ -98,20 +100,16 @@ public class ControllerActivity extends Activity {
         onConnectionChange(ConnectionStateEn.CONNECTING);
         switch (config.getConnType()) {
             case WIFI_AP:
-                IP = getResources().getString(R.string.pi_ap_ip);
                 //start monitoring wifi connection changes
                 registerReceiver(PiWiFiManager.getReceiver(), PiWiFiManager.getFilter());
-                wifiAPconnectionHandler = new Handler();
-                wifiAPconnectionHandler.postDelayed(() -> onConnectionChange(ConnectionStateEn.DISCONNECTED), 5000);
-                PiWiFiManager.connectToWiFiAP(getApplicationContext(), config.getIdentifier(), getString(R.string.pi_wifi_pw)); // todo remove hardcoded pw
+                wifiAPConnectionHandler = new Handler();
+                //start 5 second connection timeout handler
+                wifiAPConnectionHandler.postDelayed(() -> onConnectionChange(ConnectionStateEn.DISCONNECTED), 5000);
+                PiWiFiManager.connectToWiFiAP(getApplicationContext(), config.getIdentifier(), config.getSecretValue());
                 break;
             case WIFI_INET: //fall through
             case WIFI_LOCAL:
-                //start monitoring wifi connection changes
-                if (config.getIdentifier().startsWith("http://"))
-                    IP = config.getIdentifier();
-                else IP = "http://" + config.getIdentifier();
-                establishConnection();
+                establishConnection(config.getIdentifier());
                 break;
             case MQTT:
                 break;
@@ -123,16 +121,20 @@ public class ControllerActivity extends Activity {
 
     }
 
-    public void establishConnection() {
+    public void establishConnection(String ip) {
+        if (ip.startsWith("http://"))
+            effectiveIP = ip;
+        else effectiveIP = "http://" + ip;
+
         healthCheckHandler = new Handler();
-        new ServiceRequest(this, IP)
+        new ServiceRequest(this, effectiveIP)
                 .requestForCallback(ServiceEnum.CONTROLLER_SERVICE, CommandEnum.START,
                         response -> {
                             onConnectionChange(ConnectionStateEn.CONNECTED);
-                            new HealthCheckCyclicRequest(this, IP).connect(healthCheckHandler);
+                            new HealthCheckCyclicRequest(this, effectiveIP).connect(healthCheckHandler);
                         },
                         error -> {
-                            Toast.makeText(this, "Cannot connect to " + IP, Toast.LENGTH_SHORT).show();
+                            Toast.makeText(this, "Cannot connect to " + effectiveIP, Toast.LENGTH_SHORT).show();
                             new Handler().postDelayed(() -> onConnectionChange(ConnectionStateEn.DISCONNECTED), 2000);
                         });
 
@@ -149,7 +151,7 @@ public class ControllerActivity extends Activity {
 
         //todo create gps settings entry
         gpsSensor = new GPSSensor(this);
-        gpsSensor.setIp(IP);
+        gpsSensor.setIp(effectiveIP);
 
         enableDisableUltrasonic(enableUltrasonic);
         enableControls(oneOrTwoJoysticks);
@@ -159,10 +161,16 @@ public class ControllerActivity extends Activity {
 
 
     private void enableControls(boolean oneJoystickOnly) {
-        speedController = new SpeedController(this);
-        SteeringController steeringController = new SteeringController(this);
-        speedController.setIp(IP);
-        steeringController.setIp(IP);
+        SteeringController steeringController;
+
+        if (config.getConnType().equals(ConnectionTypeEn.WIFI_AP) || config.getConnType().equals(ConnectionTypeEn.WIFI_INET) || config.getConnType().equals(ConnectionTypeEn.WIFI_LOCAL)) {
+            speedController = new SpeedControllerHTTP(this, effectiveIP);
+            steeringController = new SteeringControllerHTTP(this, effectiveIP);
+        } else {
+            // todo handle here BLE
+            steeringController = new SteeringControllerHTTP(this,effectiveIP);
+        }
+
 
         if (oneJoystickOnly) {
             // 1 joystick
@@ -192,8 +200,8 @@ public class ControllerActivity extends Activity {
         if (b) {
             // send a request to start the ultrasonic sensor service
             ultrasonicSensor = new UltrasonicSensor(this);
-            ultrasonicSensor.setIp(IP);
-            new ServiceRequest(this, IP).request(ServiceEnum.ULTRASONIC_SERVICE, CommandEnum.RESTART);
+            ultrasonicSensor.setIp(effectiveIP);
+            new ServiceRequest(this, effectiveIP).request(ServiceEnum.ULTRASONIC_SERVICE, CommandEnum.RESTART);
             ultrasonicHandlerThread = new HandlerThread("HandlerThread");
             ultrasonicHandlerThread.start();
             Handler handler = new Handler(ultrasonicHandlerThread.getLooper());
@@ -211,7 +219,7 @@ public class ControllerActivity extends Activity {
             if (ultrasonicHandlerThread != null) {
                 ultrasonicHandlerThread.quit();
                 //stop the ultrasonic sensor service
-                new ServiceRequest(this, IP).request(ServiceEnum.ULTRASONIC_SERVICE, CommandEnum.STOP);
+                new ServiceRequest(this, effectiveIP).request(ServiceEnum.ULTRASONIC_SERVICE, CommandEnum.STOP);
             }
             distanceTV.setText(R.string.ultrasonic_initializing);
             distanceTV.setVisibility(View.INVISIBLE);
@@ -220,12 +228,12 @@ public class ControllerActivity extends Activity {
 
     private void enableDisableCamera(boolean enableCamera) {
         if (enableCamera) {
-            new ServiceRequest(this, IP).request(ServiceEnum.PICAMERA_SERVICE, CommandEnum.RESTART);
+            new ServiceRequest(this, effectiveIP).request(ServiceEnum.PICAMERA_SERVICE, CommandEnum.RESTART);
             //delay start of camera by 1 second to make sure the service was fully enabled
             new Handler().postDelayed(new Runnable() {
                 @Override
                 public void run() {
-                    Camera camera = new Camera(Source.ConnectionType.RawTcpIp, "picamera", IP, 1324);
+                    Camera camera = new Camera(Source.ConnectionType.RawTcpIp, "picamera", effectiveIP.substring(7), 1324);
                     Log.d(getClass().getSimpleName(), "camera: " + camera.toString());
 
                     // get the frame layout
@@ -241,7 +249,7 @@ public class ControllerActivity extends Activity {
 
         } else {
             // send a request to stop the picamera service
-            new ServiceRequest(this, IP).request(ServiceEnum.PICAMERA_SERVICE, CommandEnum.STOP);
+            new ServiceRequest(this, effectiveIP).request(ServiceEnum.PICAMERA_SERVICE, CommandEnum.STOP);
             if (videoFragment != null) {
                 videoFragment.stop();
                 videoFragment = null;
@@ -305,25 +313,20 @@ public class ControllerActivity extends Activity {
     }
 
     public void updateCrtSpeedTV(int value) {
-        this.crtSpeedValTV.setText(String.format(Locale.ENGLISH,"%d%%", value));
+        this.crtSpeedValTV.setText(String.format(Locale.ENGLISH, "%d%%", value));
     }
 
     public void updateCrtSteeringTV(int value) {
-        this.crtSteeringValTV.setText(String.format(Locale.ENGLISH,"%d%%", value));
+        this.crtSteeringValTV.setText(String.format(Locale.ENGLISH, "%d%%", value));
     }
 
     public void updateDistanceTV(double value) {
-        this.distanceTV.setText(String.format(Locale.ENGLISH,"%s cm", value));
+        this.distanceTV.setText(String.format(Locale.ENGLISH, "%s cm", value));
     }
-
-    public static String getIP() {
-        return IP;
-    }
-
 
     public void onLocateBtnPress(View v) { // todo move this into settings
         loading(true);
-        new ServiceRequest(this, IP).request(ServiceEnum.GPS_SERVICE, CommandEnum.RESTART);
+        new ServiceRequest(this, effectiveIP).request(ServiceEnum.GPS_SERVICE, CommandEnum.RESTART);
         new Handler().postDelayed(() -> gpsSensor.requestData(), 10000);
 
     }
@@ -349,7 +352,7 @@ public class ControllerActivity extends Activity {
             googleMap.moveCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
         });
         loading(false);
-        new ServiceRequest(this, IP).request(ServiceEnum.GPS_SERVICE, CommandEnum.STOP);
+        new ServiceRequest(this, effectiveIP).request(ServiceEnum.GPS_SERVICE, CommandEnum.STOP);
     }
 
     public void loading(boolean isLoading) {
@@ -362,7 +365,7 @@ public class ControllerActivity extends Activity {
     }
 
     public void cancelWifiApTimout() {
-        wifiAPconnectionHandler.removeCallbacksAndMessages(null);
+        wifiAPConnectionHandler.removeCallbacksAndMessages(null);
     }
 
     public ConnectionConfig getConfig() {
@@ -390,14 +393,14 @@ public class ControllerActivity extends Activity {
 
 
         if (isConnectionActive) { // disable all services enabled during runtime of the app
-            new ServiceRequest(this, IP).request(ServiceEnum.PICAMERA_SERVICE, CommandEnum.STOP);
-            new ServiceRequest(this, IP).request(ServiceEnum.ULTRASONIC_SERVICE, CommandEnum.STOP);
-            new ServiceRequest(this, IP).request(ServiceEnum.CONTROLLER_SERVICE, CommandEnum.STOP);
-            new ServiceRequest(this, IP).request(ServiceEnum.GPS_SERVICE, CommandEnum.STOP);
+            new ServiceRequest(this, effectiveIP).request(ServiceEnum.PICAMERA_SERVICE, CommandEnum.STOP);
+            new ServiceRequest(this, effectiveIP).request(ServiceEnum.ULTRASONIC_SERVICE, CommandEnum.STOP);
+            new ServiceRequest(this, effectiveIP).request(ServiceEnum.CONTROLLER_SERVICE, CommandEnum.STOP);
+            new ServiceRequest(this, effectiveIP).request(ServiceEnum.GPS_SERVICE, CommandEnum.STOP);
         }
         // unregister wifi connection receiver in order not to leak it
         if (config.getConnType().equals(ConnectionTypeEn.WIFI_AP)) {
-            wifiAPconnectionHandler.removeCallbacksAndMessages(null);
+            wifiAPConnectionHandler.removeCallbacksAndMessages(null);
             unregisterReceiver(PiWiFiManager.getReceiver());
         }
         super.onDestroy();

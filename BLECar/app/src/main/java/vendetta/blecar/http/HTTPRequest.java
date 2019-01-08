@@ -24,5 +24,7 @@ public class HTTPRequest {
         this.IP = IP;
     }
 
-
+    public String getIP() {
+        return IP;
+    }
 }

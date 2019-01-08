@@ -43,14 +43,13 @@ class ConnectActivity : Activity(), EditConnDialogFragment.IConnEditable {
         if (firstRun) {
             // initialize connection list with default values
             connectionArr = mutableListOf(
-                    ConnectionConfig("PiZeroW Home", ConnectionTypeEn.WIFI_LOCAL, "192.168.100.18"),
-                    ConnectionConfig("Pi3B+ DynDNS", ConnectionTypeEn.WIFI_INET, "vendettapi.go.ro"),
-                    ConnectionConfig("PiZeroW AP Local", ConnectionTypeEn.WIFI_AP, "PiZeroCar"),
-                    ConnectionConfig("PiZeroW BLE", ConnectionTypeEn.BLE, "BLECar"),
-                    ConnectionConfig("PiZeroW MQTT", ConnectionTypeEn.MQTT, "192.168.43.38"),
-                    ConnectionConfig("PiZeroW DynDNS", ConnectionTypeEn.WIFI_INET, "vendettapi.go.ro"),
-                    ConnectionConfig("PiZeroW HotSpot", ConnectionTypeEn.WIFI_LOCAL, "192.168.43.38"))
-            // serialize to store as string
+                    ConnectionConfig("PiZeroW Home", ConnectionTypeEn.WIFI_LOCAL, "192.168.100.18","",""),
+                    ConnectionConfig("Pi3B+ DynDNS", ConnectionTypeEn.WIFI_INET, "vendettapi.go.ro","",""),
+                    ConnectionConfig("PiZeroW AP Local", ConnectionTypeEn.WIFI_AP, "PiZeroCar","192.168.10.1","P1Password"),
+                    ConnectionConfig("PiZeroW BLE", ConnectionTypeEn.BLE, "BLECar","",""),
+                    ConnectionConfig("PiZeroW MQTT", ConnectionTypeEn.MQTT, "192.168.43.38","",""),
+                    ConnectionConfig("PiZeroW DynDNS", ConnectionTypeEn.WIFI_INET, "vendettapi.go.ro","",""),
+                    ConnectionConfig("PiZeroW HotSpot", ConnectionTypeEn.WIFI_LOCAL, "192.168.43.38","",""))
 
             saveConnectionArray()
             sharedPreferences
@@ -90,6 +89,7 @@ class ConnectActivity : Activity(), EditConnDialogFragment.IConnEditable {
     }
 
     private fun saveConnectionArray() {
+        // serialize to store as string
         val connectJson = Gson().toJson(connectionArr)
         sharedPreferences
                 .edit()
@@ -103,7 +103,6 @@ class ConnectActivity : Activity(), EditConnDialogFragment.IConnEditable {
         connectionSpecificValueTV.text = selectedConnection.identifier
         connectionTypeTV.text = selectedConnection.connType.value
         connectionSpecificIdTV.text = selectedConnection.connType.specific
-        // todo create image for each connection type
         connectionIV.setImageResource(selectedConnection.connType.img)
     }
 
