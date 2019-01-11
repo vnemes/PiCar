@@ -22,4 +22,7 @@
     <string name="connection_connecting">Connecting</string>
     <string name="connection_connected">Connected</string>
     <string name="connection_disconnected">Disconnected</string>
+    <string name="wear_set_angle">wearSetAngle</string>
+    <string name="wear_set_strength">wearSetStrength</string>
+    <string name="wear_connection_path">/vendetta_path</string>
 </resources>

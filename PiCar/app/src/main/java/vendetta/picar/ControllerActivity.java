@@ -4,13 +4,17 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.FragmentTransaction;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.preference.PreferenceManager;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.view.View;
 import android.view.Window;
@@ -47,6 +51,7 @@ import vendetta.picar.http.requests.ServiceEnum;
 import vendetta.picar.http.requests.ServiceRequest;
 import vendetta.picar.http.sensors.GPSSensor;
 import vendetta.picar.http.sensors.UltrasonicSensor;
+import vendetta.picar.wearsupport.WearMessageScheduler;
 
 public class ControllerActivity extends Activity {
 
@@ -59,6 +64,7 @@ public class ControllerActivity extends Activity {
 
     // Sensors
     private SpeedController speedController;
+    private SteeringController steeringController;
     private UltrasonicSensor ultrasonicSensor;
     private GPSSensor gpsSensor;
 
@@ -68,6 +74,7 @@ public class ControllerActivity extends Activity {
     private static final int JOYSTICK_UPDATE_INTERVAL = 333; // every 333 ms = 3 times per second
     private HandlerThread ultrasonicHandlerThread;
     private Handler healthCheckHandler, wifiAPConnectionHandler;
+    BroadcastReceiver messageReceiver;
     private ConnectionConfig config;
     private String effectiveIP = null;
 
@@ -118,7 +125,6 @@ public class ControllerActivity extends Activity {
             default:
                 break;
         }
-
     }
 
     public void establishConnection(String ip) {
@@ -157,18 +163,34 @@ public class ControllerActivity extends Activity {
         enableControls(oneOrTwoJoysticks);
         updateMaxSpeed(maxSpeed);
         enableDisableCamera(enableCamera);
+
+        //Register to receive broadcasts from the MessageService
+        messageReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                int angle, strength;
+                angle = intent.getIntExtra(getString(R.string.wear_set_angle), 0);
+                strength = intent.getIntExtra(getString(R.string.wear_set_angle), 0);
+                String message = "Values: " + angle + " " + strength;
+                Toast.makeText(ControllerActivity.this, message, Toast.LENGTH_SHORT).show(); //todo comment this after testing
+                speedController.setSpeedStrAngle(angle,strength);
+                steeringController.setSteeringAnglStr(angle,strength);
+            }
+        };
+        LocalBroadcastManager.getInstance(this).registerReceiver(messageReceiver, new IntentFilter(Intent.ACTION_SEND));
+
     }
 
 
     private void enableControls(boolean oneJoystickOnly) {
-        SteeringController steeringController;
+
 
         if (config.getConnType().equals(ConnectionTypeEn.WIFI_AP) || config.getConnType().equals(ConnectionTypeEn.WIFI_INET) || config.getConnType().equals(ConnectionTypeEn.WIFI_LOCAL)) {
             speedController = new SpeedControllerHTTP(this, effectiveIP);
             steeringController = new SteeringControllerHTTP(this, effectiveIP);
         } else {
             // todo handle here BLE
-            steeringController = new SteeringControllerHTTP(this,effectiveIP);
+            steeringController = new SteeringControllerHTTP(this, effectiveIP);
         }
 
 
@@ -211,9 +233,9 @@ public class ControllerActivity extends Activity {
                 public void run() {
                     ultrasonicSensor.requestData();
                     handler.postDelayed(this, 1000);
-                    loading(false);
+                    runOnUiThread(() -> loading(false));
                 }
-            }, 1000);
+            }, 6000);
             distanceTV.setVisibility(View.VISIBLE);
         } else {
             if (ultrasonicHandlerThread != null) {
@@ -260,6 +282,7 @@ public class ControllerActivity extends Activity {
 
 
     public void onConnectionChange(ConnectionStateEn connectionState) {
+        WearMessageScheduler.scheduleStateChangeMessage(this, connectionState);
         switch (connectionState) {
             case CONNECTING:
                 loading(true);
@@ -290,9 +313,7 @@ public class ControllerActivity extends Activity {
                 crtSteeringValTV.setVisibility(View.VISIBLE);
                 maxSpeedTv.setVisibility(View.VISIBLE);
                 maxTV.setVisibility(View.VISIBLE);
-
                 Toast.makeText(this, "Connected to " + config.getIdentifier(), Toast.LENGTH_SHORT).show();
-
                 break;
             case DISCONNECTED:
                 isConnectionActive = false;
@@ -385,12 +406,19 @@ public class ControllerActivity extends Activity {
     }
 
     @Override
+    public void onStop() {
+        if (messageReceiver != null)
+            LocalBroadcastManager.getInstance(this).unregisterReceiver(messageReceiver);
+        super.onStop();
+    }
+
+    @Override
     public void onDestroy() {
         if (ultrasonicHandlerThread != null)
             ultrasonicHandlerThread.quit();
         if (healthCheckHandler != null)
             healthCheckHandler.removeCallbacksAndMessages(null);
-
+        WearMessageScheduler.scheduleStateChangeMessage(this, ConnectionStateEn.DISCONNECTED);
 
         if (isConnectionActive) { // disable all services enabled during runtime of the app
             new ServiceRequest(this, effectiveIP).request(ServiceEnum.PICAMERA_SERVICE, CommandEnum.STOP);

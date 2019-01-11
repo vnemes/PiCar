@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.wear.widget.BoxInsetLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".WearControllerActivity"
+    android:background="#3a3a3e"
+    tools:deviceIds="wear">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center_horizontal"
+        android:orientation="vertical"
+        app:boxedEdges="all">
+
+        <TextView
+            android:id="@+id/text"
+            android:textSize="15sp"
+            android:text="DISCONNECTED"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+
+        <io.github.controlwear.virtual.joystick.android.JoystickView xmlns:custom="http://schemas.android.com/apk/res-auto"
+            android:id="@+id/joystick"
+            android:layout_width="wrap_content"
+            android:layout_height="138dp"
+            android:visibility="visible"
+            custom:JV_autoReCenterButton="true"
+            custom:JV_backgroundColor="#60deeaf1"
+            custom:JV_borderColor="#80f50008"
+            custom:JV_borderWidth="4dp"
+            custom:JV_buttonColor="#90000606"
+            custom:JV_buttonDirection="vertical" />
+
+        <Button
+            android:id="@+id/button_exit"
+            style="@android:style/Widget.Holo.Button.Small"
+            android:layout_width="wrap_content"
+            android:layout_height="32dp"
+            android:text="Exit Application"
+            android:textSize="12sp" />
+    </LinearLayout>
+</android.support.wear.widget.BoxInsetLayout>

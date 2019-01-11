@@ -11,10 +11,13 @@
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
 
     <uses-feature
         android:name="android.hardware.bluetooth_le"
         android:required="true" />
+
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
 
     <application
         android:allowBackup="true"
@@ -24,9 +27,8 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         tools:ignore="GoogleAppIndexingWarning">
-
         <activity
-            android:name="vendetta.picar.ConnectActivity"
+            android:name=".ConnectActivity"
             android:screenOrientation="landscape">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -34,17 +36,12 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
-
         <activity
-            android:name="vendetta.picar.ControllerActivity"
+            android:name=".ControllerActivity"
             android:screenOrientation="landscape" />
-
         <activity
-            android:name="vendetta.picar.SettingsActivity"
-            android:screenOrientation="landscape">
-
-        </activity>
+            android:name=".SettingsActivity"
+            android:screenOrientation="landscape" />
 
         <meta-data
             android:name="com.google.android.gms.version"
@@ -53,6 +50,14 @@
             android:name="com.google.android.geo.API_KEY"
             android:value="AIzaSyDbP49IevZuRotzlXk9ApgyYNvRNaylV9Y" />
 
+        <service
+            android:name=".wearsupport.WearMessageReceiverService"
+            android:enabled="true"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.google.android.gms.wearable.MESSAGE_RECEIVED" />
+                <data android:scheme="wear" android:host="*" android:pathPrefix="/vendetta_path" />
+            </intent-filter></service>
     </application>
 
 </manifest>

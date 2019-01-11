@@ -13,7 +13,6 @@ import com.android.volley.toolbox.Volley;
 public class HTTPHandlerSingleton {
     private static HTTPHandlerSingleton mInstance;
     private static RequestQueue requestQueue;
-    private static Context mContext;
 
     public static synchronized HTTPHandlerSingleton getInstance(Context context) {
         if (mInstance == null) {
@@ -23,19 +22,12 @@ public class HTTPHandlerSingleton {
     }
 
     private HTTPHandlerSingleton(Context context) {
-        mContext = context;
-        requestQueue = getRequestQueue();
+        requestQueue = Volley.newRequestQueue(context.getApplicationContext());
     }
 
-    public RequestQueue getRequestQueue(){
-        if (requestQueue == null){
-            requestQueue = Volley.newRequestQueue(mContext.getApplicationContext());
-        }
-        return requestQueue;
-    }
 
     public <T> void addToRequestQueue(Request<T> req) {
-        getRequestQueue().add(req);
+        requestQueue.add(req);
     }
 
 }
