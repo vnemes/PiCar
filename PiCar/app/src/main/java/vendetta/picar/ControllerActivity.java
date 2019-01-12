@@ -148,7 +148,6 @@ public class ControllerActivity extends Activity {
 
     @Override
     protected void onStart() {
-        super.onStart();
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
         oneOrTwoJoysticks = preferences.getBoolean(this.getString(R.string.pref_key_joystick), false);
         int maxSpeed = preferences.getInt(this.getString(R.string.pref_key_speed_seek), 50);
@@ -171,14 +170,13 @@ public class ControllerActivity extends Activity {
                 int angle, strength;
                 angle = intent.getIntExtra(getString(R.string.wear_set_angle), 0);
                 strength = intent.getIntExtra(getString(R.string.wear_set_angle), 0);
-                String message = "Values: " + angle + " " + strength;
-                Toast.makeText(ControllerActivity.this, message, Toast.LENGTH_SHORT).show(); //todo comment this after testing
-                speedController.setSpeedStrAngle(angle,strength);
-                steeringController.setSteeringAnglStr(angle,strength);
+
+                speedController.setSpeedStrAngle(angle, strength);
+                steeringController.setSteeringOneJoystick(angle, strength);
             }
         };
         LocalBroadcastManager.getInstance(this).registerReceiver(messageReceiver, new IntentFilter(Intent.ACTION_SEND));
-
+        super.onStart();
     }
 
 
@@ -190,6 +188,7 @@ public class ControllerActivity extends Activity {
             steeringController = new SteeringControllerHTTP(this, effectiveIP);
         } else {
             // todo handle here BLE
+            speedController = new SpeedControllerHTTP(this, effectiveIP);
             steeringController = new SteeringControllerHTTP(this, effectiveIP);
         }
 
@@ -203,9 +202,10 @@ public class ControllerActivity extends Activity {
             joystickSpeed.setEnabled(isConnectionActive);
             joystickSpeed.setVisibility(isConnectionActive ? View.VISIBLE : View.INVISIBLE);
             joystickSpeed.setButtonDirection(0); // both directions
-            joystickSpeed.setOnMoveListener(speedController::setSpeedStrAngle, JOYSTICK_UPDATE_INTERVAL);
-            joystickSpeed.setOnMoveListener(steeringController::setSteeringAnglStr, JOYSTICK_UPDATE_INTERVAL);
-
+            joystickSpeed.setOnMoveListener((angle, strength) -> {
+                speedController.setSpeedStrAngle(angle, strength);
+                steeringController.setSteeringOneJoystick(angle, strength);
+            }, JOYSTICK_UPDATE_INTERVAL);
         } else {
             // 2 joysticks
             joystickSpeed.setEnabled(isConnectionActive);

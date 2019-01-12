@@ -20,6 +20,18 @@ public abstract class SteeringController {
         lastSteerAngl = 0;
     }
 
+    public void setSteeringOneJoystick(int angle, int strength) {
+        if (strength == lastSteerStr && angle == lastSteerAngl)
+            return;
+        lastSteerStr = strength;
+        lastSteerAngl = angle;
+
+        int steering = strength != 0 ? (int) (Math.cos(Math.toRadians(angle)) * 100) : 0;
+
+        setSteering(Math.abs(steering), steering >= 0? 0 : 1);
+        ((ControllerActivity) context).updateCrtSteeringTV(steering);
+    }
+
     public void setSteeringAnglStr(int angle, int strength) {
 
         if (strength == lastSteerStr && angle == lastSteerAngl)
