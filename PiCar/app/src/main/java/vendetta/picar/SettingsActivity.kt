@@ -12,8 +12,7 @@ class SettingsActivity : Activity() {
         setContentView(R.layout.activity_settings)
 
         fragmentManager.beginTransaction()
-                .replace(android.R.id.content,   SettingsFragment())
-//                .addToBackStack(null)
+                .replace(android.R.id.content, SettingsFragment())
                 .commit()
     }
 

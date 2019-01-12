@@ -25,6 +25,7 @@ import android.widget.Toast;
 
 
 import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
@@ -61,6 +62,7 @@ public class ControllerActivity extends Activity {
     private ProgressBar pbConnect;
     private FrameLayout frameLayout;
     private VideoFragment videoFragment;
+//    private MapView mapView;
 
     // Sensors
     private SpeedController speedController;
@@ -94,6 +96,7 @@ public class ControllerActivity extends Activity {
         crtSteeringValTV = findViewById(R.id.tv_crtSteeringVal);
         distanceTV = findViewById(R.id.tv_Distance);
         frameLayout = findViewById(R.id.video_frame);
+//        mapView =  findViewById(R.id.mapView);
 
         // Joystick for controlling speed
         joystickSpeed = findViewById(R.id.joystick_speed);
@@ -153,15 +156,19 @@ public class ControllerActivity extends Activity {
         int maxSpeed = preferences.getInt(this.getString(R.string.pref_key_speed_seek), 50);
         boolean enableCamera = preferences.getBoolean(this.getString(R.string.pref_key_enable_camera), false);
         boolean enableUltrasonic = preferences.getBoolean(this.getString(R.string.pref_key_enable_ultrasonic), false);
+        boolean enableGPS = preferences.getBoolean(this.getString(R.string.pref_key_enable_gps),false);
 
-        //todo create gps settings entry
-        gpsSensor = new GPSSensor(this);
-        gpsSensor.setIp(effectiveIP);
+        if (enableCamera && enableGPS){
+            Toast.makeText(this,"Cannot have both camera and GPS",Toast.LENGTH_LONG).show();
+            enableDisableCamera(true);
+        } else{
+            enableDisableGPS(enableGPS);
+            enableDisableCamera(enableCamera);
+        }
 
         enableDisableUltrasonic(enableUltrasonic);
         enableControls(oneOrTwoJoysticks);
         updateMaxSpeed(maxSpeed);
-        enableDisableCamera(enableCamera);
 
         //Register to receive broadcasts from the MessageService
         messageReceiver = new BroadcastReceiver() {
@@ -179,6 +186,16 @@ public class ControllerActivity extends Activity {
         super.onStart();
     }
 
+    private void enableDisableGPS(boolean enableGPS) {
+        if (enableGPS) {
+            gpsSensor = new GPSSensor(this);
+            gpsSensor.setIp(effectiveIP);
+            loading(true);
+            new ServiceRequest(this, effectiveIP).request(ServiceEnum.GPS_SERVICE, CommandEnum.RESTART);
+            new Handler().postDelayed(() -> gpsSensor.requestData(), 10000);
+        } else
+            frameLayout.setVisibility(View.INVISIBLE);
+    }
 
     private void enableControls(boolean oneJoystickOnly) {
 
@@ -345,23 +362,13 @@ public class ControllerActivity extends Activity {
         this.distanceTV.setText(String.format(Locale.ENGLISH, "%s cm", value));
     }
 
-    public void onLocateBtnPress(View v) { // todo move this into settings
-        loading(true);
-        new ServiceRequest(this, effectiveIP).request(ServiceEnum.GPS_SERVICE, CommandEnum.RESTART);
-        new Handler().postDelayed(() -> gpsSensor.requestData(), 10000);
-
-    }
-
     public void showMap(double lat, double lng) {
-        Dialog dialog = new Dialog(this);
-        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
-        dialog.setContentView(R.layout.dialogmap);
-        dialog.show();
-
-        MapView mMapView = dialog.findViewById(R.id.mapView);
-        mMapView.onCreate(dialog.onSaveInstanceState());
-        mMapView.onResume();// needed to get the map to display immediately
-        mMapView.getMapAsync(googleMap -> {
+        MapFragment mMapFragment = MapFragment.newInstance();
+        FragmentTransaction fragmentTransaction =
+                getFragmentManager().beginTransaction();
+        fragmentTransaction.add(R.id.video_frame, mMapFragment);
+        fragmentTransaction.commit();
+        mMapFragment.getMapAsync(googleMap -> {
             LatLng latLng = new LatLng(lat, lng);
             CameraPosition cameraPosition = new CameraPosition.Builder().
                     target(latLng).
@@ -371,7 +378,9 @@ public class ControllerActivity extends Activity {
                     build();
             googleMap.addMarker(new MarkerOptions().position(latLng).title("PiCar"));
             googleMap.moveCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
+            frameLayout.setVisibility(View.VISIBLE);
         });
+
         loading(false);
         new ServiceRequest(this, effectiveIP).request(ServiceEnum.GPS_SERVICE, CommandEnum.STOP);
     }

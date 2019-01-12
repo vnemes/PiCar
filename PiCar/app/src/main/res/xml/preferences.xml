@@ -57,10 +57,17 @@
 
         <CheckBoxPreference
             android:key="@string/pref_key_enable_ultrasonic"
-            android:title="Distance measurement"
+            android:title="Collision Warning"
             android:defaultValue="false"
             android:summary="Enable distance measurement using the ultrasonic sensor"
-            android:icon="@android:drawable/ic_menu_sort_by_size" />
+            android:icon="@android:drawable/ic_dialog_alert" />
+
+        <CheckBoxPreference
+            android:key="@string/pref_key_enable_gps"
+            android:title="GPS tracking"
+            android:defaultValue="false"
+            android:summary="Enable gps tracking on the vehicle"
+            android:icon="@android:drawable/ic_dialog_map" />
 
         <!--<EditTextPreference-->
             <!--android:key="edittext_preference"-->

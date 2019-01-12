@@ -22,6 +22,12 @@
 
     </FrameLayout>
 
+    <!--<fragment xmlns:android="http://schemas.android.com/apk/res/android"-->
+        <!--android:name="com.google.android.gms.maps.MapFragment"-->
+        <!--android:id="@+id/map"-->
+        <!--android:layout_width="match_parent"-->
+        <!--android:layout_height="match_parent"/>-->
+
     <TextView
         android:id="@+id/tv_conn_stat"
         android:layout_width="wrap_content"
@@ -54,12 +60,12 @@
         android:id="@+id/joystick_speed"
         android:layout_width="170dp"
         android:layout_height="170dp"
-        android:layout_alignParentBottom="true"
         android:layout_alignParentRight="true"
-        android:layout_marginBottom="8dp"
-        android:layout_marginEnd="8dp"
+        android:layout_alignParentBottom="true"
         android:layout_marginStart="8dp"
         android:layout_marginTop="200dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginBottom="8dp"
         custom:JV_autoReCenterButton="true"
         custom:JV_backgroundColor="#15deeaf1"
         custom:JV_borderColor="#15f50008"
@@ -77,12 +83,12 @@
         android:id="@+id/joystick_steering"
         android:layout_width="170dp"
         android:layout_height="170dp"
-        android:layout_alignParentBottom="true"
         android:layout_alignParentRight="true"
-        android:layout_marginBottom="8dp"
-        android:layout_marginEnd="8dp"
+        android:layout_alignParentBottom="true"
         android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginBottom="8dp"
         custom:JV_autoReCenterButton="true"
         custom:JV_backgroundColor="#15deeaf1"
         custom:JV_borderColor="#15f50008"

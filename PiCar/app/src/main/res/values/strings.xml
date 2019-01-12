@@ -12,6 +12,7 @@
     <string name="pref_key_speed_seek">seek_bar_speed</string>
     <string name="pref_key_enable_camera">enable_camera_stream</string>
     <string name="pref_key_enable_ultrasonic">enable_distance_measurement</string>
+    <string name="pref_key_enable_gps">enable_gps_tracking</string>
     <string name="pref_key_first_launch">first_launch</string>
     <string name="pref_key_connection_config">connection_config</string>
     <string name="connection_name">Connection Name</string>
@@ -25,4 +26,6 @@
     <string name="wear_set_angle">wearSetAngle</string>
     <string name="wear_set_strength">wearSetStrength</string>
     <string name="wear_connection_path">/vendetta_path</string>
+    <string name="gps_prev_lat">gps_prev_lat</string>
+    <string name="gps_prev_lon">gps_prev_lon</string>
 </resources>

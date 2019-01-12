@@ -1,6 +1,8 @@
 package vendetta.picar.http.sensors;
 
 import android.content.Context;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -10,6 +12,7 @@ import com.android.volley.toolbox.JsonObjectRequest;
 import org.json.JSONException;
 
 import vendetta.picar.ControllerActivity;
+import vendetta.picar.R;
 import vendetta.picar.http.HTTPHandlerSingleton;
 import vendetta.picar.http.HTTPRequest;
 
@@ -46,11 +49,12 @@ public class GPSSensor extends HTTPRequest implements ISensor {
         HTTPHandlerSingleton.getInstance(context).addToRequestQueue(new JsonObjectRequest(Request.Method.GET, IP + "/sensor/gps/", null, response -> {
             Log.d("HTTP",response.toString());
             try {
-                //todo add callback to ControllerActivity to launch a dialogbox with a map with received coords
                 gpsData = new GPSData((double) response.get("latitude"),(double) response.get("longitude"),(double) response.get("altitude"), (double)response.get("real"));
                 if (gpsData.real == 1.0) {
                     ((ControllerActivity) context).showMap(gpsData.latitude, gpsData.longitude);
-                    Toast.makeText(context, "Lat:"+gpsData.latitude+" long:"+gpsData.longitude+" alt:"+gpsData+'m', Toast.LENGTH_SHORT).show();
+//                    Toast.makeText(context, "Lat:"+gpsData.latitude+" long:"+gpsData.longitude+" alt:"+gpsData+'m', Toast.LENGTH_SHORT).show();
+                    SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
+                    preferences.edit().putFloat(context.getString(R.string.gps_prev_lat),(float)gpsData.latitude).putFloat(context.getString(R.string.gps_prev_lon),(float)gpsData.longitude).apply();
                 }
                 else requestDefaultMap(gpsData.latitude,gpsData.longitude);
             } catch (JSONException e) {
@@ -58,7 +62,11 @@ public class GPSSensor extends HTTPRequest implements ISensor {
             }
         }, error -> {
             Log.d("HTTP",error.toString());
-            requestDefaultMap(45.747409,21.226300);
+            SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(super.context);
+            double lat = preferences.getFloat(context.getString(R.string.gps_prev_lat), 45.747409f);
+            double lon = preferences.getFloat(context.getString(R.string.gps_prev_lon), 21.226300f);
+            requestDefaultMap(lat,lon);
+            preferences.edit().putFloat(context.getString(R.string.gps_prev_lat),(float)lat).putFloat(context.getString(R.string.gps_prev_lon),(float)lon).apply();
         }));
     }
 
