@@ -1,7 +1,6 @@
 import atexit
 
-from flask import Flask, request, Response
-# from drivers import PiCarController, UltrasonicSensor
+from flask import Flask
 from webserver.ControlAPI import control_api
 from webserver.HealthAPI import health_api
 from webserver.sensors.UltrasonicAPI import ultrasonic_api
