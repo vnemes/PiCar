@@ -1,8 +1,8 @@
 import RPi.GPIO as gpio
-from ..IControlDriver import IControlDriver
+from ..IDriver import IDriver
 
 
-class DCSteeringDriver(IControlDriver):
+class DCSteeringDriver(IDriver):
 
     __instance = None
     BCM_PIN_STEERING_HIGH = 26

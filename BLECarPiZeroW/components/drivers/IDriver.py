@@ -1,7 +1,7 @@
 import abc
 
 
-class IControlDriver(abc.ABC):
+class IDriver(abc.ABC):
 
     def enable_disable_driver(self, enable):
         if enable:

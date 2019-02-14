@@ -1,8 +1,8 @@
 import RPi.GPIO as gpio
-from ..IControlDriver import IControlDriver
+from ..IDriver import IDriver
 
 
-class ServoSteeringDriver(IControlDriver):
+class ServoSteeringDriver(IDriver):
 
     __instance = None
     BCM_PIN_STEERING = 26
