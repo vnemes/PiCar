@@ -42,12 +42,12 @@ class PiCarController:
             print('Closed PiCarController with all associated GPIO channels')
         return
 
-    def request_speed(self, speed, direction):
-        self.__speed_driver.set_speed(speed, direction)
+    def request_speed(self, direction, speed):
+        self.__speed_driver.set_speed(direction, speed)
         return
 
-    def request_steering(self, steer, direction):
-        self.__steer_driver.set_steering(steer, direction)
+    def request_steering(self, direction, steer):
+        self.__steer_driver.set_steering(direction, steer)
         return
 
 
