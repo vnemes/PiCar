@@ -1,4 +1,4 @@
-from flask import Blueprint, Response, request
+from flask import Blueprint, Response, request, jsonify
 from components.drivers.sensors.GPSSensor import GPSSensor
 
 gps = GPSSensor.get_instance()
@@ -10,11 +10,12 @@ gps_api = Blueprint('gps_api', __name__)
 def gps_value_request():
     gps_data = gps.get_data()
     if gps_data and gps_data.latitude:
-        gps_json = {'latitude': gps_data.latitude,
+        gps_json = {"sensor_name": "gps_sensor",
+                    'latitude': gps_data.latitude,
                     'longitude': gps_data.longitude,
                     'altitude': gps_data.altitude,
                     'real': 1.0}
-        return Response(gps_json)
+        return jsonify(gps_json)
     else:
         return Response(status=204)
 

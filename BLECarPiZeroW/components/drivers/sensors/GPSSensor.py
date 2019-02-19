@@ -46,6 +46,7 @@ class GPSSensor(IDriver):
                 self.latest_gps_value = None
                 # self.ser.open()
                 self.data_thread = threading.Thread(target=self.__collect_data)
+                self.data_thread.daemon = True
                 self.data_thread.start()
             except serial.serialutil.SerialException as ex:
                 print('Error connecting to GPS: ' + str(ex))
