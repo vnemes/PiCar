@@ -72,7 +72,10 @@ public class EditConnDialogFragment extends DialogFragment {
                 .setTitle("Editing " + configHolder.getActiveSelection().getName())
                 .setIcon(android.R.drawable.ic_menu_edit)
                 .setPositiveButton("Save", (dialog, id) ->
-                        configHolder.onSaveButtonPress(new ConnectionConfig(connectionNameET.getText().toString(), configHolder.getActiveSelection().getConnType(), connectionValueET.getText().toString(), addrET.getText().toString(), secretET.getText().toString())))
+                        configHolder.onSaveButtonPress(new ConnectionConfig(connectionNameET.getText().toString(), configHolder.getActiveSelection().getConnType(),
+                                connectionValueET.getText().toString(),
+                                configHolder.getActiveSelection().getConnType().equals(ConnectionTypeEn.WIFI_AP) ? addrET.getText().toString(): "",
+                                configHolder.getActiveSelection().getConnType().equals(ConnectionTypeEn.WIFI_AP) ? secretET.getText().toString() : "")))
                 .setNegativeButton("cancel", (dialog, id) -> {// User cancelled the dialog
                 });
         return builder.create();
