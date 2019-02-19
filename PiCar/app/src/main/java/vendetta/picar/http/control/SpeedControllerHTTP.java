@@ -9,6 +9,7 @@ import com.android.volley.toolbox.JsonObjectRequest;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import vendetta.picar.R;
 import vendetta.picar.control.SpeedController;
 import vendetta.picar.http.HTTPHandlerSingleton;
 import vendetta.picar.http.HTTPRequest;
@@ -29,7 +30,7 @@ public class SpeedControllerHTTP extends SpeedController {
             jsonObject.put("speed",speed);
             jsonObject.put("direction",direction);
             Log.d(getClass().getSimpleName(),jsonObject.toString());
-            HTTPHandlerSingleton.getInstance(super.context).addToRequestQueue(new JsonObjectRequest(Request.Method.POST,request.getIP() + "/control/speed/",jsonObject,null,null));
+            request.jsonRequest(Request.Method.POST,request.getIP() + context.getString(R.string.api_speed_endpoint),jsonObject,null,null);
         } catch (JSONException e) {
             e.printStackTrace();
         }

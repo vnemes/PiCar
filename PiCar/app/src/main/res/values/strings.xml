@@ -28,4 +28,11 @@
     <string name="wear_connection_path">/vendetta_path</string>
     <string name="gps_prev_lat">gps_prev_lat</string>
     <string name="gps_prev_lon">gps_prev_lon</string>
+    <string name="api_health_endpoint">/health</string>
+    <string name="api_temp_endpoint">/health/temperature</string>
+    <string name="api_ultrasonic_endpoint">/sensor/ultrasonic</string>
+    <string name="api_gps_endpoint">/sensor/gps</string>
+    <string name="api_control_endpoint">/control</string>
+    <string name="api_speed_endpoint">/control/speed</string>
+    <string name="api_steering_endpoint">/control/steering</string>
 </resources>

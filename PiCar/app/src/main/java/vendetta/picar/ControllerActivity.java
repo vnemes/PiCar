@@ -2,7 +2,6 @@ package vendetta.picar;
 
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.app.Dialog;
 import android.app.FragmentTransaction;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -17,7 +16,6 @@ import android.preference.PreferenceManager;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.view.View;
-import android.view.Window;
 import android.widget.FrameLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -26,7 +24,6 @@ import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.MapFragment;
-import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
@@ -41,12 +38,13 @@ import vendetta.picar.camera.dependencies.Source;
 import vendetta.picar.connection.ConnectionConfig;
 import vendetta.picar.connection.ConnectionTypeEn;
 import vendetta.picar.control.SpeedController;
+import vendetta.picar.http.control.PlatformControllerHTTP;
 import vendetta.picar.http.control.SpeedControllerHTTP;
 import vendetta.picar.control.SteeringController;
 import vendetta.picar.connection.PiWiFiManager;
 import vendetta.picar.connection.ConnectionStateEn;
 import vendetta.picar.http.control.SteeringControllerHTTP;
-import vendetta.picar.http.requests.HealthCheckCyclicRequest;
+import vendetta.picar.http.requests.HealthRequest;
 import vendetta.picar.http.requests.CommandEnum;
 import vendetta.picar.http.requests.ServiceEnum;
 import vendetta.picar.http.requests.ServiceRequest;
@@ -136,11 +134,11 @@ public class ControllerActivity extends Activity {
         else effectiveIP = "http://" + ip;
 
         healthCheckHandler = new Handler();
-        new ServiceRequest(this, effectiveIP)
-                .requestForCallback(ServiceEnum.CONTROLLER_SERVICE, CommandEnum.START,
+        new PlatformControllerHTTP(this, effectiveIP)
+                .enableDisablePlatform(true,
                         response -> {
                             onConnectionChange(ConnectionStateEn.CONNECTED);
-                            new HealthCheckCyclicRequest(this, effectiveIP).connect(healthCheckHandler);
+                            new HealthRequest(this, effectiveIP).cyclicHealthCheck(healthCheckHandler);
                         },
                         error -> {
                             Toast.makeText(this, "Cannot connect to " + effectiveIP, Toast.LENGTH_SHORT).show();
@@ -191,7 +189,7 @@ public class ControllerActivity extends Activity {
             gpsSensor = new GPSSensor(this);
             gpsSensor.setIp(effectiveIP);
             loading(true);
-            new ServiceRequest(this, effectiveIP).request(ServiceEnum.GPS_SERVICE, CommandEnum.RESTART);
+            gpsSensor.enableDisableSensor(enableGPS);
             new Handler().postDelayed(() -> gpsSensor.requestData(), 10000);
         } else
             frameLayout.setVisibility(View.INVISIBLE);
@@ -240,7 +238,7 @@ public class ControllerActivity extends Activity {
             // send a request to start the ultrasonic sensor service
             ultrasonicSensor = new UltrasonicSensor(this);
             ultrasonicSensor.setIp(effectiveIP);
-            new ServiceRequest(this, effectiveIP).request(ServiceEnum.ULTRASONIC_SERVICE, CommandEnum.RESTART);
+            ultrasonicSensor.enableDisableSensor(b);
             ultrasonicHandlerThread = new HandlerThread("HandlerThread");
             ultrasonicHandlerThread.start();
             Handler handler = new Handler(ultrasonicHandlerThread.getLooper());
@@ -258,7 +256,7 @@ public class ControllerActivity extends Activity {
             if (ultrasonicHandlerThread != null) {
                 ultrasonicHandlerThread.quit();
                 //stop the ultrasonic sensor service
-                new ServiceRequest(this, effectiveIP).request(ServiceEnum.ULTRASONIC_SERVICE, CommandEnum.STOP);
+                ultrasonicSensor.enableDisableSensor(b);
             }
             distanceTV.setText(R.string.ultrasonic_initializing);
             distanceTV.setVisibility(View.INVISIBLE);
@@ -267,7 +265,8 @@ public class ControllerActivity extends Activity {
 
     private void enableDisableCamera(boolean enableCamera) {
         if (enableCamera) {
-            new ServiceRequest(this, effectiveIP).request(ServiceEnum.PICAMERA_SERVICE, CommandEnum.RESTART);
+            //todo implement camera service here too.
+//            new ServiceRequest(this, effectiveIP).request(ServiceEnum.PICAMERA_SERVICE, CommandEnum.RESTART);
             //delay start of camera by 1 second to make sure the service was fully enabled
             new Handler().postDelayed(new Runnable() {
                 @Override
@@ -287,8 +286,8 @@ public class ControllerActivity extends Activity {
             }, 1000);
 
         } else {
-            // send a request to stop the picamera service
-            new ServiceRequest(this, effectiveIP).request(ServiceEnum.PICAMERA_SERVICE, CommandEnum.STOP);
+            // send a request to stop the picamera service //todo implement camera service
+//            new ServiceRequest(this, effectiveIP).request(ServiceEnum.PICAMERA_SERVICE, CommandEnum.STOP);
             if (videoFragment != null) {
                 videoFragment.stop();
                 videoFragment = null;
@@ -382,7 +381,7 @@ public class ControllerActivity extends Activity {
         });
 
         loading(false);
-        new ServiceRequest(this, effectiveIP).request(ServiceEnum.GPS_SERVICE, CommandEnum.STOP);
+        gpsSensor.enableDisableSensor(false);
     }
 
     public void loading(boolean isLoading) {
@@ -430,10 +429,11 @@ public class ControllerActivity extends Activity {
         WearMessageScheduler.scheduleStateChangeMessage(this, ConnectionStateEn.DISCONNECTED);
 
         if (isConnectionActive) { // disable all services enabled during runtime of the app
-            new ServiceRequest(this, effectiveIP).request(ServiceEnum.PICAMERA_SERVICE, CommandEnum.STOP);
-            new ServiceRequest(this, effectiveIP).request(ServiceEnum.ULTRASONIC_SERVICE, CommandEnum.STOP);
-            new ServiceRequest(this, effectiveIP).request(ServiceEnum.CONTROLLER_SERVICE, CommandEnum.STOP);
-            new ServiceRequest(this, effectiveIP).request(ServiceEnum.GPS_SERVICE, CommandEnum.STOP);
+            //todo implement camera service here too.
+//            new ServiceRequest(this, effectiveIP).request(ServiceEnum.PICAMERA_SERVICE, CommandEnum.STOP);
+            //ultrasonicSensor.enableDisableSensor(false);
+            //gpsSensor.enableDisableSensor(false);
+            new PlatformControllerHTTP(this,effectiveIP).enableDisablePlatform(false);
         }
         // unregister wifi connection receiver in order not to leak it
         if (config.getConnType().equals(ConnectionTypeEn.WIFI_AP)) {

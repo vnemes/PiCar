@@ -5,5 +5,9 @@ package vendetta.picar.http.sensors;
  */
 
 public interface ISensor {
+
     void requestData();
+
+    void enableDisableSensor(boolean enable);
+
 }
