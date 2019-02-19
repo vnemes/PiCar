@@ -1,19 +1,22 @@
-from flask import Blueprint, Response
+from flask import Blueprint, Response, jsonify
 import os
 
 health_api = Blueprint('health_api', __name__)
 
 
-@health_api.route("/", methods=['GET'])
+@health_api.route("", methods=['GET'])
 def health_check():
-    return Response(status=200)
+    json = {"status": "ok"}
+    return jsonify(json)
 
 
 @health_api.route("/temperature", methods=['GET'])
 def temperature_request():
-    return Response(measure_temperature())
+    temp_json = {"sensor_name": "temperature_sensor",
+                 "temperature": measure_temperature()}
+    return jsonify(temp_json)
 
 
 def measure_temperature():
     temp = os.popen("vcgencmd measure_temp").readline()
-    return temp.replace("temp=", "")
+    return float(temp.replace("temp=", "").replace("'C", ""))
