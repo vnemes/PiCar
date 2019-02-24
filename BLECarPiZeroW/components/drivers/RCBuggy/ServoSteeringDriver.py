@@ -1,8 +1,8 @@
 import RPi.GPIO as gpio
-from ..IDriver import IDriver
+from components.AbstractComponent import AbstractComponent
 
 
-class ServoSteeringDriver(IDriver):
+class ServoSteeringDriver(AbstractComponent):
 
     __instance = None
     BCM_PIN_STEERING = 26

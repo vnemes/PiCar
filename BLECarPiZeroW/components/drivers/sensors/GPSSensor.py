@@ -1,10 +1,10 @@
 import serial
 import pynmea2
 import threading
-from ..IDriver import IDriver
+from components.AbstractComponent import AbstractComponent
 
 
-class GPSSensor(IDriver):
+class GPSSensor(AbstractComponent):
     __instance = None
     SERIAL_BAUDRATE = 9600
     SERIAL_PORT = '/dev/serial0'

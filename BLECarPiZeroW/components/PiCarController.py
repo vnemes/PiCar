@@ -3,22 +3,32 @@ from components.drivers.RCBuggy.ServoSteeringDriver import ServoSteeringDriver
 from components.drivers.ShelbyGT500.DCSteeringDriver import DCSteeringDriver
 from components.drivers.ShelbyGT500.HBridgeSpeedDriver import HBridgeSpeedDriver
 from components.drivers.PlatformEn import PlatformEn
+from components.adas.AdaptiveCruiseController import AdaptiveCruiseController
 import RPi.GPIO
 
 
 class PiCarController:
+    __instance = None
+
+    @staticmethod
+    def get_instance():
+        """ Static access method. """
+        if PiCarController.__instance is None:
+            PiCarController()
+        return PiCarController.__instance
 
     def __init__(self):
-        self.__active_platform = PlatformEn.NONE
-        # self.steer_driver = ServoSteeringDriver.get_instance()
-        # self.speed_driver = PowerHBridgeSpeedDriver.get_instance()
-
-        self.__steer_driver = DCSteeringDriver.get_instance()
-        self.__speed_driver = HBridgeSpeedDriver.get_instance()
+        if PiCarController.__instance is not None:
+            raise Exception("This class is a singleton!")
+        else:
+            PiCarController.__instance = self
+            self.__active_platform = PlatformEn.NONE
+            self.__speed_driver = None
+            self.__steer_driver = None
+            self.cruise_controller = AdaptiveCruiseController.get_instance()
         return
 
     def activate_control(self, enable, requested_platform):
-        enable = True if enable.lower() == "true" else False
 
         if self.__active_platform != requested_platform and self.__active_platform != PlatformEn.NONE:
             self.__speed_driver.enable_disable_driver(False)
@@ -38,24 +48,26 @@ class PiCarController:
         self.__speed_driver.enable_disable_driver(enable)
         self.__steer_driver.enable_disable_driver(enable)
         if not enable:
+            self.activate_cruise_control(False)
             RPi.GPIO.cleanup()
             print('Closed PiCarController with all associated GPIO channels')
         return
 
+    def activate_cruise_control(self, enable):
+        self.cruise_controller.enable_disable_driver(enable)
+        return
+
+    def middleware_set_speed(self, direction, speed):
+        self.__speed_driver.set_speed(direction, speed)
+        return
+
     def request_speed(self, direction, speed):
+        self.activate_cruise_control(False)
         self.__speed_driver.set_speed(direction, speed)
         return
 
     def request_steering(self, direction, steer):
+        self.activate_cruise_control(False)
         self.__steer_driver.set_steering(direction, steer)
         return
 
-
-# if __name__ == "__main__":
-#     try:
-#         stuff = PiCarController()
-#         stuff.activate_control(True, PlatformEn.SHELBYGT500)
-#         stuff.request_steering(40, 0)
-#         stuff.request_speed(50, 1)
-#     finally:
-#         stuff.activate_control(False, PlatformEn.SHELBYGT500)

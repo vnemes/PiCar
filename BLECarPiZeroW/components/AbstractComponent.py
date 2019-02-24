@@ -1,7 +1,7 @@
 import abc
 
 
-class IDriver(abc.ABC):
+class AbstractComponent(abc.ABC):
 
     def enable_disable_driver(self, enable):
         if enable:

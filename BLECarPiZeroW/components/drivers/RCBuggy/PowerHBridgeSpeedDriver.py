@@ -1,8 +1,8 @@
 import RPi.GPIO as gpio
-from ..IDriver import IDriver
+from components.AbstractComponent import AbstractComponent
 
 
-class PowerHBridgeSpeedDriver(IDriver):
+class PowerHBridgeSpeedDriver(AbstractComponent):
 
     __instance = None
     BCM_PIN_SPEED_PWM = 19

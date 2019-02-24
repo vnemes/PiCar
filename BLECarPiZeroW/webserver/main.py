@@ -1,6 +1,8 @@
 import atexit
-
 from flask import Flask
+
+
+from components.drivers.PlatformEn import PlatformEn
 from webserver.ControlAPI import control_api
 from webserver.HealthAPI import health_api
 from webserver.sensors.UltrasonicAPI import ultrasonic_api
@@ -14,7 +16,12 @@ app.register_blueprint(ultrasonic_api, url_prefix='/sensor')
 app.register_blueprint(gps_api, url_prefix='/sensor')
 
 
+def cleanup():
+    import RPi
+    RPi.GPIO.cleanup()
+
 if __name__ == '__main__':
     # Register to be called on exit
-    # atexit.register(close_running_threads)
+
+    atexit.register(cleanup)
     app.run(debug=True, host='0.0.0.0')

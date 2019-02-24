@@ -1,7 +1,8 @@
 from flask import Blueprint, request, Response
 from components.PiCarController import PiCarController
+from components.drivers.PlatformEn import PlatformEn
 
-controller = PiCarController()
+controller = PiCarController.get_instance()
 
 control_api = Blueprint('control_api', __name__)
 
@@ -22,6 +23,15 @@ def steering_change_request():
 
 @control_api.route("", methods=['POST'])
 def service_enable_request():
-    controller.activate_control(request.json['enabled'], request.json['platform'])
+    enable = True if request.json['enabled'].lower() == "true" else False
+    platform = PlatformEn[request.json['platform']]
+    controller.activate_control(enable, platform)
+    return Response(request.data)
+
+
+@control_api.route("/adaptivecruise", methods=['POST'])
+def service_enable_acc_request():
+    enable = True if request.json['enabled'].lower() == "true" else False
+    controller.activate_cruise_control(enable)
     return Response(request.data)
 

@@ -233,12 +233,14 @@ public class ControllerActivity extends Activity {
         }
     }
 
-    private void enableDisableUltrasonic(boolean b) {
-        if (b) {
+    private void enableDisableUltrasonic(boolean enable) {
+
+        //start/stop the ultrasonic sensor service
+        ultrasonicSensor.enableDisableSensor(enable);
+        if (enable) {
             // send a request to start the ultrasonic sensor service
             ultrasonicSensor = new UltrasonicSensor(this);
             ultrasonicSensor.setIp(effectiveIP);
-            ultrasonicSensor.enableDisableSensor(b);
             ultrasonicHandlerThread = new HandlerThread("HandlerThread");
             ultrasonicHandlerThread.start();
             Handler handler = new Handler(ultrasonicHandlerThread.getLooper());
@@ -255,8 +257,6 @@ public class ControllerActivity extends Activity {
         } else {
             if (ultrasonicHandlerThread != null) {
                 ultrasonicHandlerThread.quit();
-                //stop the ultrasonic sensor service
-                ultrasonicSensor.enableDisableSensor(b);
             }
             distanceTV.setText(R.string.ultrasonic_initializing);
             distanceTV.setVisibility(View.INVISIBLE);
@@ -431,7 +431,7 @@ public class ControllerActivity extends Activity {
         if (isConnectionActive) { // disable all services enabled during runtime of the app
             //todo implement camera service here too.
 //            new ServiceRequest(this, effectiveIP).request(ServiceEnum.PICAMERA_SERVICE, CommandEnum.STOP);
-            //ultrasonicSensor.enableDisableSensor(false);
+            enableDisableUltrasonic(false);
             //gpsSensor.enableDisableSensor(false);
             new PlatformControllerHTTP(this,effectiveIP).enableDisablePlatform(false);
         }
