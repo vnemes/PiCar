@@ -44,31 +44,45 @@
         app:layout_constraintTop_toBottomOf="@+id/ignore1" />
 
 
-    <ImageButton
-        android:id="@+id/connectionSettingsBtn"
-        style="@android:style/Widget.Holo.ImageButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:layout_marginEnd="8dp"
-        android:onClick="onSettingsBtnPress"
-        android:src="@android:drawable/ic_menu_preferences"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
     <android.support.constraint.ConstraintLayout
         android:id="@+id/connInfo_ListView"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_marginStart="11dp"
+        android:layout_marginStart="9dp"
         android:layout_marginTop="8dp"
         android:layout_marginEnd="8dp"
         android:layout_marginBottom="8dp"
         app:layout_constraintBottom_toTopOf="@+id/connectionStartBtn"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/connectionListView"
-        app:layout_constraintTop_toBottomOf="@+id/connectionSettingsBtn"
+        app:layout_constraintTop_toTopOf="parent"
         tools:layout="@layout/activity_connect">
+
+        <TextView
+            android:id="@+id/connectionPlatformTV"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="8dp"
+            android:text="Target Platform Value"
+            android:textAppearance="@android:style/TextAppearance.Holo.Medium"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.0"
+            app:layout_constraintStart_toEndOf="@+id/ignored2"
+            app:layout_constraintTop_toBottomOf="@+id/connectionTypeTV" />
+
+        <TextView
+            android:id="@+id/ignored2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="8dp"
+            android:text="Target Platform:"
+            android:textAppearance="@android:style/TextAppearance.Holo.Medium"
+            android:textColor="@color/inactiveTextColor"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/ignored" />
 
         <TextView
             android:id="@+id/connectionNameTV"
@@ -76,8 +90,8 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
             android:text="Connection Name"
-            android:textColor="@color/inactiveTextColor"
             android:textAppearance="@android:style/TextAppearance.Holo.Large"
+            android:textColor="@color/inactiveTextColor"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
@@ -86,7 +100,7 @@
             android:layout_width="270dp"
             android:layout_height="130dp"
             android:layout_marginStart="8dp"
-            android:layout_marginTop="16dp"
+            android:layout_marginTop="24dp"
             android:layout_marginEnd="8dp"
             android:adjustViewBounds="true"
             android:cropToPadding="false"
@@ -141,15 +155,22 @@
             android:layout_marginStart="8dp"
             android:layout_marginTop="8dp"
             android:layout_marginEnd="8dp"
-            android:layout_marginBottom="8dp"
             android:text="Connection Type Value"
             android:textAppearance="@android:style/TextAppearance.Holo.Medium"
-            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.0"
             app:layout_constraintStart_toEndOf="@+id/ignored"
-            app:layout_constraintTop_toBottomOf="@+id/connectionSpecificValueTV"
-            app:layout_constraintVertical_bias="0.0" />
+            app:layout_constraintTop_toBottomOf="@+id/connectionSpecificValueTV" />
+
+        <ImageButton
+            android:id="@+id/connectionSettingsBtn"
+            style="@android:style/Widget.Holo.ImageButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="onSettingsBtnPress"
+            android:src="@android:drawable/ic_menu_preferences"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
     </android.support.constraint.ConstraintLayout>
 

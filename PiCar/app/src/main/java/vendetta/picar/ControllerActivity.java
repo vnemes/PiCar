@@ -113,7 +113,7 @@ public class ControllerActivity extends Activity {
                 wifiAPConnectionHandler = new Handler();
                 //start 5 second connection timeout handler
                 wifiAPConnectionHandler.postDelayed(() -> onConnectionChange(ConnectionStateEn.DISCONNECTED), 5000);
-                PiWiFiManager.connectToWiFiAP(getApplicationContext(), config.getIdentifier(), config.getSecretValue());
+                PiWiFiManager.connectToWiFiAP(getApplicationContext(), config.getAddrValue(), config.getSecretValue());
                 break;
             case WIFI_INET: //fall through
             case WIFI_LOCAL:

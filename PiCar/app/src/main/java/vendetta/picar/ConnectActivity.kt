@@ -16,6 +16,7 @@ import kotlin.collections.ArrayList
 import android.view.ViewGroup
 import android.widget.AdapterView.OnItemClickListener
 import android.widget.*
+import vendetta.picar.connection.ConnectionPlatformEn
 import vendetta.picar.preferences.EditConnDialogFragment
 
 
@@ -26,6 +27,7 @@ class ConnectActivity : Activity(), EditConnDialogFragment.IConnEditable {
     private val connectionSpecificValueTV: TextView by lazy { findViewById<TextView>(R.id.connectionSpecificValueTV) }
     private val connectionSpecificIdTV: TextView by lazy { findViewById<TextView>(R.id.connectionSpecificIdTV) }
     private val connectionTypeTV: TextView by lazy { findViewById<TextView>(R.id.connectionTypeTV) }
+    private val connectionPlatformTV: TextView by lazy { findViewById<TextView>(R.id.connectionPlatformTV) }
     private lateinit var selectedConnection: ConnectionConfig
     private lateinit var sharedPreferences: SharedPreferences
     private lateinit var connectionArr: MutableList<ConnectionConfig>
@@ -42,13 +44,13 @@ class ConnectActivity : Activity(), EditConnDialogFragment.IConnEditable {
         if (firstRun) {
             // initialize connection list with default values
             connectionArr = mutableListOf(
-                    ConnectionConfig("PiZeroW Home", ConnectionTypeEn.WIFI_LOCAL, "192.168.100.18","",""),
-                    ConnectionConfig("Pi3B+ DynDNS", ConnectionTypeEn.WIFI_INET, "vendettapi.go.ro","",""),
-                    ConnectionConfig("PiZeroW AP Local", ConnectionTypeEn.WIFI_AP, "PiZeroCar","192.168.10.1","P1Password"),
-                    ConnectionConfig("PiZeroW BLE", ConnectionTypeEn.BLE, "BLECar","",""),
-                    ConnectionConfig("PiZeroW MQTT", ConnectionTypeEn.MQTT, "192.168.43.38","",""),
-                    ConnectionConfig("PiZeroW DynDNS", ConnectionTypeEn.WIFI_INET, "vendettapi.go.ro","",""),
-                    ConnectionConfig("PiZeroW HotSpot", ConnectionTypeEn.WIFI_LOCAL, "192.168.43.38","",""))
+                    ConnectionConfig("PiZeroW Home", ConnectionTypeEn.WIFI_LOCAL, ConnectionPlatformEn.SHELBYGT500,"192.168.100.18","",""),
+                    ConnectionConfig("Pi3B+ DynDNS", ConnectionTypeEn.WIFI_INET, ConnectionPlatformEn.RCBUGGY,"vendettapi.go.ro","",""),
+                    ConnectionConfig("PiZeroW AP Local", ConnectionTypeEn.WIFI_AP, ConnectionPlatformEn.SHELBYGT500,"192.168.10.1","PiZeroCar","P1Password"),
+                    ConnectionConfig("PiZeroW BLE", ConnectionTypeEn.BLE, ConnectionPlatformEn.SHELBYGT500,"BLECar","",""),
+                    ConnectionConfig("PiZeroW MQTT", ConnectionTypeEn.MQTT, ConnectionPlatformEn.SHELBYGT500,"192.168.43.38","",""),
+                    ConnectionConfig("PiZeroW DynDNS", ConnectionTypeEn.WIFI_INET, ConnectionPlatformEn.SHELBYGT500,"vendettapi.go.ro","",""),
+                    ConnectionConfig("PiZeroW HotSpot", ConnectionTypeEn.WIFI_LOCAL, ConnectionPlatformEn.SHELBYGT500,"192.168.43.38","",""))
 
             saveConnectionArray()
             sharedPreferences
@@ -101,6 +103,8 @@ class ConnectActivity : Activity(), EditConnDialogFragment.IConnEditable {
         connectionNameTV.text = selectedConnection.name
         connectionSpecificValueTV.text = selectedConnection.identifier
         connectionTypeTV.text = selectedConnection.connType.value
+
+        connectionPlatformTV.text = selectedConnection.connPlatform.value
         connectionSpecificIdTV.text = selectedConnection.connType.specific
         connectionIV.setImageResource(selectedConnection.connType.img)
     }

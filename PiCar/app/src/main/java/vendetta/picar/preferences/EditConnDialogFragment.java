@@ -8,12 +8,15 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.Spinner;
 import android.widget.TextView;
 
 import vendetta.picar.R;
 import vendetta.picar.connection.ConnectionConfig;
+import vendetta.picar.connection.ConnectionPlatformEn;
 import vendetta.picar.connection.ConnectionTypeEn;
 
 import static android.text.InputType.TYPE_CLASS_TEXT;
@@ -23,6 +26,7 @@ public class EditConnDialogFragment extends DialogFragment {
 
     private IConnEditable configHolder;
     private EditText connectionNameET, connectionValueET, addrET, secretET;
+    private Spinner connectionPlatformSpinner;
 
     public interface IConnEditable {
         void onSaveButtonPress(ConnectionConfig connectionConfig);
@@ -51,10 +55,14 @@ public class EditConnDialogFragment extends DialogFragment {
         View v = inflater.inflate(R.layout.dialog_connection_edit, null);
         connectionNameET = v.findViewById(R.id.connectionNameET);
         connectionValueET = v.findViewById(R.id.connectionValueET);
+        connectionPlatformSpinner = v.findViewById(R.id.connectionPlatformSpinner);
         TextView connectionIdEditTV = v.findViewById(R.id.connectionIdEditTV);
         connectionNameET.setText(configHolder.getActiveSelection().getName());
         connectionValueET.setText(configHolder.getActiveSelection().getIdentifier());
         connectionIdEditTV.setText(configHolder.getActiveSelection().getConnType().getSpecific());
+        ArrayAdapter spinnerArrayAdapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_spinner_dropdown_item, ConnectionPlatformEn.values());
+        connectionPlatformSpinner.setAdapter(spinnerArrayAdapter);
+        connectionPlatformSpinner.setSelection(spinnerArrayAdapter.getPosition(configHolder.getActiveSelection().getConnPlatform()));
 
         if (configHolder.getActiveSelection().getConnType().equals(ConnectionTypeEn.WIFI_AP)) {
             LinearLayout editConnLinLayout = v.findViewById(R.id.editConnLinLayout);
@@ -73,6 +81,7 @@ public class EditConnDialogFragment extends DialogFragment {
                 .setIcon(android.R.drawable.ic_menu_edit)
                 .setPositiveButton("Save", (dialog, id) ->
                         configHolder.onSaveButtonPress(new ConnectionConfig(connectionNameET.getText().toString(), configHolder.getActiveSelection().getConnType(),
+                                ConnectionPlatformEn.valueOf(connectionPlatformSpinner.getSelectedItem().toString()),
                                 connectionValueET.getText().toString(),
                                 configHolder.getActiveSelection().getConnType().equals(ConnectionTypeEn.WIFI_AP) ? addrET.getText().toString(): "",
                                 configHolder.getActiveSelection().getConnType().equals(ConnectionTypeEn.WIFI_AP) ? secretET.getText().toString() : "")))
