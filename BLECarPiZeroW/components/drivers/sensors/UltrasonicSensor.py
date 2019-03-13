@@ -36,22 +36,18 @@ class UltrasonicSensor(AbstractComponent):
             gpio.output(self.BCM_PIN_TRIG, True)
             time.sleep(0.00001)
             gpio.output(self.BCM_PIN_TRIG, False)
-            pulse_start = 0
-            pulse_end = 0
             start = time.time()
-            stop = time.time()  # timeout strategy in case of missed response
-            while gpio.input(self.BCM_PIN_ECHO) == 0 and stop - start < 300:
+            pulse_start = time.time()  # timeout strategy in case of missed response
+            while gpio.input(self.BCM_PIN_ECHO) == 0 and pulse_start - start < 0.300:
                 pulse_start = time.time()
-                stop = time.time()
-            if stop >= start + 300:
+            if pulse_start >= start + 0.300:
                 continue
 
             start = time.time()
-            stop = time.time()  # timeout strategy in case of missed response
-            while gpio.input(self.BCM_PIN_ECHO) == 1 and stop - start < 300:
+            pulse_end = time.time()  # timeout strategy in case of missed response
+            while gpio.input(self.BCM_PIN_ECHO) == 1 and pulse_end - start < 0.300:
                 pulse_end = time.time()
-                stop = time.time()
-            if stop >= start + 300:
+            if pulse_end >= start + 0.300:
                 continue
 
             if pulse_start == 0 or pulse_end == 0:
@@ -61,7 +57,7 @@ class UltrasonicSensor(AbstractComponent):
             dist = pulse_duration * self.SOUND_SPEED_CONSTANT
             with self.lock:
                 self.latest_distance_value = round(dist, 2)
-            # print('computed distance: ' + str(self.distance) + ' cm')
+            print('computed distance: ' + str(self.latest_distance_value) + ' cm')
             time.sleep(1.0/self.DISTANCE_SAMPLING_FREQ)
         return
 
