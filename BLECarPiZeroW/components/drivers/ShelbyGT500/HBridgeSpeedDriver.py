@@ -7,7 +7,7 @@ class HBridgeSpeedDriver(AbstractComponent):
     __instance = None
     BCM_PIN_SPEED_HIGH = 19
     BCM_PIN_SPEED_LOW = 16
-    GPIO_PWM_FREQUENCY = 20000  # 20kHz
+    GPIO_PWM_FREQUENCY = 32000  # 20kHz
     GPIO_TORQUE_CORRECT = 50
 
     @staticmethod
@@ -25,8 +25,11 @@ class HBridgeSpeedDriver(AbstractComponent):
         return
 
     def set_speed(self, direction, speed):
-        speed = self.__normalize(speed)
+        # speed = self.__normalize(speed)
+        self.set_speed_drv(direction, speed)
+        return
 
+    def set_speed_drv(self, direction, speed):
         self.speed_forward_pwm.ChangeDutyCycle(speed if direction else 0)
         self.speed_backward_pwm.ChangeDutyCycle(0 if direction else speed)
         print('speed:\t' + str(speed) + (' forward' if direction == 1 else ' backward'))
