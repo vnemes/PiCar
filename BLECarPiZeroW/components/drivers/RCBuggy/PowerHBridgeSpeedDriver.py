@@ -27,6 +27,9 @@ class PowerHBridgeSpeedDriver(AbstractComponent):
         return
 
     def set_speed(self, direction, speed):
+        self.set_speed_drv(direction, speed)
+
+    def set_speed_drv(self, direction, speed):
         self.speed_pwm.ChangeDutyCycle(speed)
         gpio.output(self.BCM_PIN_SPEED_DIR, gpio.HIGH if direction == 1 else gpio.LOW)
         print('speed:\t' + str(speed) + (' forward' if direction == 1 else ' backward'))
