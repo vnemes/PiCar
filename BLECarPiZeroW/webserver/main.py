@@ -1,8 +1,8 @@
 import atexit
+import subprocess
+
 from flask import Flask
 
-
-from components.drivers.PlatformEn import PlatformEn
 from webserver.ControlAPI import control_api
 from webserver.HealthAPI import health_api
 from webserver.sensors.UltrasonicAPI import ultrasonic_api
@@ -22,6 +22,5 @@ def cleanup():
 
 if __name__ == '__main__':
     # Register to be called on exit
-
     atexit.register(cleanup)
     app.run(debug=True, host='0.0.0.0')

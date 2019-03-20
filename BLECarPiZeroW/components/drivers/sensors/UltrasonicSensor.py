@@ -1,7 +1,7 @@
 import RPi.GPIO as gpio
 import time
 import threading
-from components.AbstractComponent import AbstractComponent
+from components.drivers.AbstractComponent import AbstractComponent
 
 
 class UltrasonicSensor(AbstractComponent):

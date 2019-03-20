@@ -1,8 +1,8 @@
 import RPi.GPIO as gpio
-from components.AbstractComponent import AbstractComponent
+from components.drivers.AbstractComponent import AbstractComponent
 
 
-class PowerHBridgeSpeedDriver(AbstractComponent):
+class ESCSpeedDriver(AbstractComponent):
 
     __instance = None
     BCM_PIN_SPEED_PWM = 19
@@ -15,15 +15,15 @@ class PowerHBridgeSpeedDriver(AbstractComponent):
     @staticmethod
     def get_instance():
         """ Static access method. """
-        if PowerHBridgeSpeedDriver.__instance is None:
-            PowerHBridgeSpeedDriver()
-        return PowerHBridgeSpeedDriver.__instance
+        if ESCSpeedDriver.__instance is None:
+            ESCSpeedDriver()
+        return ESCSpeedDriver.__instance
 
     def __init__(self):
-        if PowerHBridgeSpeedDriver.__instance is not None:
+        if ESCSpeedDriver.__instance is not None:
             raise Exception("This class is a singleton!")
         else:
-            PowerHBridgeSpeedDriver.__instance = self
+            ESCSpeedDriver.__instance = self
         return
 
     def set_speed(self, direction, speed):

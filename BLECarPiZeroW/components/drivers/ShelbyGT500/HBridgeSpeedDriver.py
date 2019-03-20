@@ -1,5 +1,5 @@
 import pigpio
-from components.AbstractComponent import AbstractComponent
+from components.drivers.AbstractComponent import AbstractComponent
 
 
 class HBridgeSpeedDriver(AbstractComponent):

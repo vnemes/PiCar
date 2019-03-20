@@ -1,5 +1,5 @@
 import RPi.GPIO as gpio
-from components.AbstractComponent import AbstractComponent
+from components.drivers.AbstractComponent import AbstractComponent
 
 
 class ServoSteeringDriver(AbstractComponent):

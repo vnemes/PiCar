@@ -1,8 +1,8 @@
-from components.drivers.RCBuggy.PowerHBridgeSpeedDriver import PowerHBridgeSpeedDriver
+from components.drivers.RCBuggy.ESCSpeedDriver import ESCSpeedDriver
 from components.drivers.RCBuggy.ServoSteeringDriver import ServoSteeringDriver
 from components.drivers.ShelbyGT500.DCSteeringDriver import DCSteeringDriver
 from components.drivers.ShelbyGT500.HBridgeSpeedDriver import HBridgeSpeedDriver
-from components.drivers.PlatformEn import PlatformEn
+from components.core.PlatformEn import PlatformEn
 from components.adas.AdaptiveCruiseController import AdaptiveCruiseController
 import RPi.GPIO
 
@@ -40,7 +40,7 @@ class PiCarController:
 
         if requested_platform == PlatformEn.RCBUGGY:
             self.__steer_driver = ServoSteeringDriver.get_instance()
-            self.__speed_driver = PowerHBridgeSpeedDriver.get_instance()
+            self.__speed_driver = ESCSpeedDriver.get_instance()
         elif requested_platform == PlatformEn.SHELBYGT500:
             self.__steer_driver = DCSteeringDriver.get_instance()
             self.__speed_driver = HBridgeSpeedDriver.get_instance()

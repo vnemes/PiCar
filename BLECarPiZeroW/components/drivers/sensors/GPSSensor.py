@@ -1,7 +1,7 @@
 import serial
 import pynmea2
 import threading
-from components.AbstractComponent import AbstractComponent
+from components.drivers.AbstractComponent import AbstractComponent
 
 
 class GPSSensor(AbstractComponent):

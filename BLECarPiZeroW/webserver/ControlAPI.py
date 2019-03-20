@@ -1,8 +1,9 @@
 from flask import Blueprint, request, Response
-from components.PiCarController import PiCarController
-from components.drivers.PlatformEn import PlatformEn
+from components.core.PlatformEn import PlatformEn
+import rpyc
 
-controller = PiCarController.get_instance()
+__control_service = None
+controller = None
 
 control_api = Blueprint('control_api', __name__)
 
@@ -24,8 +25,25 @@ def steering_change_request():
 @control_api.route("", methods=['POST'])
 def service_enable_request():
     enable = True if request.json['enabled'].lower() == "true" else False
-    platform = PlatformEn[request.json['platform']]
-    controller.activate_control(enable, platform)
+
+    global controller
+
+    if PlatformEn[request.json['platform']] == PlatformEn.SHELBYGT500_no_service:
+        from components.core.PiCarController import PiCarController
+        controller = PiCarController.get_instance()
+        controller.activate_control(enable, PlatformEn.SHELBYGT500)
+        return Response(request.data)
+
+    global __control_service
+
+    if enable:
+        __control_service = rpyc.connect_by_service("Controller")
+        controller = __control_service.root
+        controller.enable_disable_driver(True)
+    else:
+        controller.enable_disable_driver(False)
+        __control_service.close()
+
     return Response(request.data)
 
 
