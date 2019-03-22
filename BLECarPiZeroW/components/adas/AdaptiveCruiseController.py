@@ -2,11 +2,11 @@ import threading
 from simple_pid import PID
 import time
 
-from ..AbstractComponent import AbstractComponent
+from components.adas.AbstractRefComponent import AbstractRefComponent
 from ..drivers.sensors.UltrasonicSensor import UltrasonicSensor
 
 
-class AdaptiveCruiseController(AbstractComponent):
+class AdaptiveCruiseController(AbstractRefComponent):
     __instance = None
     TARGET_DISTANCE = 20.0  # cm
     THREAD_RUN_REQUESTED = 'THREAD_RUN_REQUESTED'
@@ -27,12 +27,10 @@ class AdaptiveCruiseController(AbstractComponent):
             self.pid = None
         return
 
-    def __pid_control_speed(self):
+    def __pid_control_speed(self, controller):
         # TODO refine PID parameters
         # self.pid = PID(-1, 0.1, 0.05, setpoint=self.TARGET_DISTANCE)
         self.pid = PID(-4, -0.2, -1, setpoint=self.TARGET_DISTANCE)
-        from components.PiCarController import PiCarController
-        controller = PiCarController.get_instance()
         ultrasonic = UltrasonicSensor.get_instance()
         ultrasonic.enable_disable_driver(True)
         self.pid.sample_time = 1.0 / ultrasonic.DISTANCE_SAMPLING_FREQ
@@ -51,14 +49,14 @@ class AdaptiveCruiseController(AbstractComponent):
             time.sleep(self.pid.sample_time)
         return
 
-    def start(self):
+    def start(self, caller):
         if not self.pid_thread or not self.pid_thread.is_alive():
-            self.pid_thread = threading.Thread(target=self.__pid_control_speed)
+            self.pid_thread = threading.Thread(target=self.__pid_control_speed, args=[caller])
             self.pid_thread.daemon = True
             self.pid_thread.start()
         return
 
-    def stop(self):
+    def stop(self, caller):
         if self.pid_thread and self.pid_thread.is_alive():
             self.pid_thread.THREAD_RUN_REQUESTED = False
             self.pid_thread.join()
