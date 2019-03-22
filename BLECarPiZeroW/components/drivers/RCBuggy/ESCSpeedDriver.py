@@ -24,12 +24,18 @@ class ESCSpeedDriver(AbstractComponent):
             raise Exception("This class is a singleton!")
         else:
             ESCSpeedDriver.__instance = self
+            self.speed_limit = 100
         return
+
+    def change_speed_limit(self, limit):
+        self.speed_limit = limit if limit <= 100 else 100
 
     def set_speed(self, direction, speed):
         self.set_speed_drv(direction, speed)
 
     def set_speed_drv(self, direction, speed):
+        if speed > self.speed_limit:
+            speed = self.speed_limit
         self.speed_pwm.ChangeDutyCycle(speed)
         gpio.output(self.BCM_PIN_SPEED_DIR, gpio.HIGH if direction == 1 else gpio.LOW)
         print('speed:\t' + str(speed) + (' forward' if direction == 1 else ' backward'))

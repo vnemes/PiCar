@@ -54,11 +54,15 @@ class PiCarController:
         return
 
     def activate_cruise_control(self, enable):
-        self.cruise_controller.enable_disable_driver(enable)
+        self.cruise_controller.enable_disable_driver(enable, self)
         return
 
     def middleware_set_speed(self, direction, speed):
         self.__speed_driver.set_speed(direction, speed)
+        return
+
+    def set_speed_limit(self, limit):
+        self.__speed_driver.change_speed_limit(limit)
         return
 
     def request_speed(self, direction, speed):

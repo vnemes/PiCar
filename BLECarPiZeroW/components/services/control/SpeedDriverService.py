@@ -27,6 +27,9 @@ class SpeedDriverService(rpyc.Service, AbstractComponentService):
         self.driver.enable_disable_driver(False)
         self.started = False
 
+    def exposed_set_speed_limit(self, limit):
+        self.driver.change_speed_limit(limit)
+
     def exposed_set_speed(self, direction, speed):
         self.driver.set_speed(direction, speed)
 

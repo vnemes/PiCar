@@ -22,9 +22,15 @@ class HBridgeSpeedDriver(AbstractComponent):
         else:
             HBridgeSpeedDriver.__instance = self
             self.pi = None
+            self.speed_limit = 100
         return
 
+    def change_speed_limit(self, limit):
+        self.speed_limit = limit if limit <= 100 else 100
+
     def set_speed(self, direction, speed):
+        if speed > self.speed_limit:
+            speed = self.speed_limit
         speed = self.__normalize(speed)
         self.set_speed_drv(direction, speed)
         return
