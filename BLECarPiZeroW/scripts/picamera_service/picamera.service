@@ -3,10 +3,9 @@ Description=Video Streaming service using PiCamera
 After=network.target
 
 [Service]
-User=root
-Group=pidevs
+User=vendetta
 IgnoreSIGPIPE=false
-ExecStart=/usr/bin/picamera_start
+ExecStart=/home/vendetta/PiCar/scripts/picamera_start.sh
 
 [Install]
 WantedBy=multi-user.target

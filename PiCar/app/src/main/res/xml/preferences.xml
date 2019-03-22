@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:title="Basic Settings">
+
+    <!--<Preference-->
+        <!--android:key="basic_preference"-->
+        <!--android:title="basic preference"-->
+        <!--android:summary="some description" />-->
+
+    <!--&lt;!&ndash;<Preference&ndash;&gt;-->
+        <!--&lt;!&ndash;android:key="stylish_preference"&ndash;&gt;-->
+        <!--&lt;!&ndash;android:title="@string/title_stylish_preference"&ndash;&gt;-->
+        <!--&lt;!&ndash;android:summary="@string/summary_stylish_preference" />&ndash;&gt;-->
+
+    <!--<Preference-->
+        <!--android:key="preference_with_icon"-->
+        <!--android:title="Preference with icon"-->
+        <!--android:summary="This preference has an icon"-->
+        <!--android:icon="@android:drawable/ic_menu_camera" />-->
+
+    <PreferenceCategory
+        android:title="Control Settings">
+
+        <SwitchPreference
+            android:key="@string/pref_key_joystick"
+            android:title="One Joystick"
+            android:defaultValue="false"
+            android:summary="Toggles between one 360° joystick (when enabled) or two joysticks.\n Left - steering, Right - acceleration"/>
+
+        <SeekBarPreference
+            android:key="@string/pref_key_speed_seek"
+            android:title="Speed Limiter"
+            android:summary="Choose the value at which the acceleration will not increase anymore"
+            android:defaultValue="@integer/seek_bar_default"
+            android:max="@integer/seek_bar_max"
+            android:min="@integer/seek_bar_min"/>
+
+        <!--<DropDownPreference-->
+            <!--android:key="dropdown_preference"-->
+            <!--android:title="title_dropdown_preference"-->
+            <!--android:summary="summary_dropdown_preference"-->
+            <!--android:entries="entries_list_preference"-->
+            <!--android:entryValues="entryvalues_list_preference" />-->
+
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:title="Sensor Settings  ">
+
+        <CheckBoxPreference
+            android:key="@string/pref_key_enable_camera"
+            android:title="Video stream"
+            android:defaultValue="false"
+            android:summary="Enable the camera feed from the Pi"
+            android:icon="@android:drawable/ic_menu_camera" />
+
+        <CheckBoxPreference
+            android:key="@string/pref_key_enable_ultrasonic"
+            android:title="Collision Warning"
+            android:defaultValue="false"
+            android:summary="Enable distance measurement using the ultrasonic sensor"
+            android:icon="@android:drawable/ic_dialog_alert" />
+
+        <CheckBoxPreference
+            android:key="@string/pref_key_enable_gps"
+            android:title="GPS tracking"
+            android:defaultValue="false"
+            android:summary="Enable gps tracking on the vehicle"
+            android:icon="@android:drawable/ic_dialog_map" />
+
+        <!--<EditTextPreference-->
+            <!--android:key="edittext_preference"-->
+            <!--android:title="Placeholder"-->
+            <!--android:summary="summary_edittext_preference"-->
+            <!--android:dialogTitle="dialog_title_edittext_preference" />-->
+
+        <!--<ListPreference-->
+            <!--android:key="list_preference"-->
+            <!--android:title="title_list_preference"-->
+            <!--android:summary="summary_list_preference"-->
+            <!--android:entries="entries_list_preference"-->
+            <!--android:entryValues="@array/entryvalues_list_preference"-->
+            <!--android:dialogTitle="@string/dialog_title_list_preference" />-->
+
+        <!--<MultiSelectListPreference-->
+            <!--android:key="multi_select_list_preference"-->
+            <!--android:title="@string/title_multi_list_preference"-->
+            <!--android:summary="@string/summary_multi_list_preference"-->
+            <!--android:entries="@array/entries_list_preference"-->
+            <!--android:entryValues="@array/entryvalues_list_preference"-->
+            <!--android:dialogTitle="@string/dialog_title_multi_list_preference" />-->
+
+    </PreferenceCategory>
+
+    <!--<PreferenceCategory-->
+        <!--android:title="launch_preferences">-->
+
+        <!--&lt;!&ndash; This PreferenceScreen tag serves as a screen break (similar to page break-->
+             <!--in word processing). Like for other preference types, we assign a key-->
+             <!--here so it is able to save and restore its instance state. &ndash;&gt;-->
+        <!--<PreferenceScreen-->
+            <!--android:key="screen_preference"-->
+            <!--android:title="title_screen_preference"-->
+            <!--android:summary="summary_screen_preference">-->
+
+            <!--&lt;!&ndash; You can place more preferences here that will be shown on the next screen. &ndash;&gt;-->
+
+            <!--<CheckBoxPreference-->
+                <!--android:key="next_screen_checkbox_preference"-->
+                <!--android:title="title_next_screen_toggle_preference"-->
+                <!--android:summary="summary_next_screen_toggle_preference" />-->
+
+        <!--</PreferenceScreen>-->
+
+        <!--<PreferenceScreen-->
+            <!--android:title="title_intent_preference"-->
+            <!--android:summary="summary_intent_preference">-->
+
+            <!--<intent android:action="android.intent.action.VIEW"-->
+                <!--android:data="http://www.android.com" />-->
+
+        <!--</PreferenceScreen>-->
+
+    <!--</PreferenceCategory>-->
+
+    <!--<PreferenceCategory-->
+        <!--android:title="preference_attributes">-->
+
+        <!--<CheckBoxPreference-->
+            <!--android:key="parent_checkbox_preference"-->
+            <!--android:title="title_parent_preference"-->
+            <!--android:summary="summary_parent_preference" />-->
+
+        <!--&lt;!&ndash; The visual style of a child is defined by this styled theme attribute. &ndash;&gt;-->
+        <!--<CheckBoxPreference-->
+            <!--android:key="child_checkbox_preference"-->
+            <!--android:dependency="parent_checkbox_preference"-->
+            <!--android:layout="?android:attr/preferenceLayoutChild"-->
+            <!--android:title="title_child_preference"-->
+            <!--android:summary="summary_child_preference" />-->
+
+    <!--</PreferenceCategory>-->
+
+</PreferenceScreen>
