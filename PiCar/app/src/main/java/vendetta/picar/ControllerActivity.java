@@ -38,6 +38,7 @@ import vendetta.picar.camera.dependencies.Source;
 import vendetta.picar.connection.ConnectionConfig;
 import vendetta.picar.connection.ConnectionTypeEn;
 import vendetta.picar.control.SpeedController;
+import vendetta.picar.http.control.ACCControllerHTTP;
 import vendetta.picar.http.control.PlatformControllerHTTP;
 import vendetta.picar.http.control.SpeedControllerHTTP;
 import vendetta.picar.control.SteeringController;
@@ -45,9 +46,6 @@ import vendetta.picar.connection.PiWiFiManager;
 import vendetta.picar.connection.ConnectionStateEn;
 import vendetta.picar.http.control.SteeringControllerHTTP;
 import vendetta.picar.http.requests.HealthRequest;
-import vendetta.picar.http.requests.CommandEnum;
-import vendetta.picar.http.requests.ServiceEnum;
-import vendetta.picar.http.requests.ServiceRequest;
 import vendetta.picar.http.sensors.GPSSensor;
 import vendetta.picar.http.sensors.UltrasonicSensor;
 import vendetta.picar.wearsupport.WearMessageScheduler;
@@ -69,7 +67,9 @@ public class ControllerActivity extends Activity {
     private GPSSensor gpsSensor;
 
     private boolean isConnectionActive = false;
-    private boolean oneOrTwoJoysticks;
+    private boolean oneOrTwoJoysticks, enableGPS = false, enableCamera= false,
+            enableUltrasonic = false, enableACC = false;
+    private int maxSpeed = 50;
     private final static String TAG = ControllerActivity.class.getSimpleName();
     private static final int JOYSTICK_UPDATE_INTERVAL = 333; // every 333 ms = 3 times per second
     private HandlerThread ultrasonicHandlerThread;
@@ -151,22 +151,34 @@ public class ControllerActivity extends Activity {
     protected void onStart() {
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
         oneOrTwoJoysticks = preferences.getBoolean(this.getString(R.string.pref_key_joystick), false);
-        int maxSpeed = preferences.getInt(this.getString(R.string.pref_key_speed_seek), 50);
-        boolean enableCamera = preferences.getBoolean(this.getString(R.string.pref_key_enable_camera), false);
-        boolean enableUltrasonic = preferences.getBoolean(this.getString(R.string.pref_key_enable_ultrasonic), false);
-        boolean enableGPS = preferences.getBoolean(this.getString(R.string.pref_key_enable_gps),false);
 
-        if (enableCamera && enableGPS){
+        maxSpeed = preferences.getInt(this.getString(R.string.pref_key_speed_seek), 50);
+        boolean enableCameraRequest = preferences.getBoolean(this.getString(R.string.pref_key_enable_camera), false);
+        boolean enableUltrasonicRequest = preferences.getBoolean(this.getString(R.string.pref_key_enable_ultrasonic), false);
+        boolean enableGPSRequest = preferences.getBoolean(this.getString(R.string.pref_key_enable_gps),false);
+        boolean enableACCRequest = preferences.getBoolean(this.getString(R.string.pref_key_enable_acc),false);
+
+        if (enableCameraRequest && enableGPSRequest){
             Toast.makeText(this,"Cannot have both camera and GPS",Toast.LENGTH_LONG).show();
             enableDisableCamera(true);
         } else{
-            enableDisableGPS(enableGPS);
-            enableDisableCamera(enableCamera);
+            if (enableGPS != enableGPSRequest)
+                enableDisableGPS(enableGPSRequest);
+            if (enableCamera != enableCameraRequest)
+                enableDisableCamera(enableCameraRequest);
         }
-
-        enableDisableUltrasonic(enableUltrasonic);
+        if (enableUltrasonic != enableUltrasonicRequest)
+            enableDisableUltrasonic(enableUltrasonicRequest);
         enableControls(oneOrTwoJoysticks);
-        updateMaxSpeed(maxSpeed);
+
+        if (enableACC != enableACCRequest)
+            enableDisableAcc(enableACCRequest);
+
+
+        enableCamera = enableCameraRequest;
+        enableGPS = enableGPSRequest;
+        enableUltrasonic = enableUltrasonicRequest;
+        enableACC = enableACCRequest;
 
         //Register to receive broadcasts from the MessageService
         messageReceiver = new BroadcastReceiver() {
@@ -200,6 +212,7 @@ public class ControllerActivity extends Activity {
 
         if (config.getConnType().equals(ConnectionTypeEn.WIFI_AP) || config.getConnType().equals(ConnectionTypeEn.WIFI_INET) || config.getConnType().equals(ConnectionTypeEn.WIFI_LOCAL)) {
             speedController = new SpeedControllerHTTP(this, effectiveIP);
+            updateMaxSpeed(maxSpeed);
             steeringController = new SteeringControllerHTTP(this, effectiveIP);
         } else {
             // todo handle here BLE
@@ -235,12 +248,11 @@ public class ControllerActivity extends Activity {
 
     private void enableDisableUltrasonic(boolean enable) {
 
-        //start/stop the ultrasonic sensor service
-        ultrasonicSensor.enableDisableSensor(enable);
         if (enable) {
             // send a request to start the ultrasonic sensor service
             ultrasonicSensor = new UltrasonicSensor(this);
             ultrasonicSensor.setIp(effectiveIP);
+            ultrasonicSensor.enableDisableSensor(true);
             ultrasonicHandlerThread = new HandlerThread("HandlerThread");
             ultrasonicHandlerThread.start();
             Handler handler = new Handler(ultrasonicHandlerThread.getLooper());
@@ -252,12 +264,13 @@ public class ControllerActivity extends Activity {
                     handler.postDelayed(this, 1000);
                     runOnUiThread(() -> loading(false));
                 }
-            }, 6000);
+            }, 3000);
             distanceTV.setVisibility(View.VISIBLE);
-        } else {
+        } else if (!enableACC){
             if (ultrasonicHandlerThread != null) {
                 ultrasonicHandlerThread.quit();
-            }
+            }if (ultrasonicSensor != null)
+                ultrasonicSensor.enableDisableSensor(false);
             distanceTV.setText(R.string.ultrasonic_initializing);
             distanceTV.setVisibility(View.INVISIBLE);
         }
@@ -294,6 +307,10 @@ public class ControllerActivity extends Activity {
                 frameLayout.setVisibility(View.INVISIBLE);
             }
         }
+    }
+
+    private void enableDisableAcc(boolean enable) {
+        new ACCControllerHTTP(this, effectiveIP).enableDisableACC(enable);
     }
 
 

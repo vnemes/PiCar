@@ -12,6 +12,8 @@
     <string name="pref_key_speed_seek">seek_bar_speed</string>
     <string name="pref_key_enable_camera">enable_camera_stream</string>
     <string name="pref_key_enable_ultrasonic">enable_distance_measurement</string>
+    <string name="pref_key_enable_acc">enable_adaptive_cruise_control</string>
+    <string name="pref_key_enable_lka">enable_lane_keep_assist</string>
     <string name="pref_key_enable_gps">enable_gps_tracking</string>
     <string name="pref_key_first_launch">first_launch</string>
     <string name="pref_key_connection_config">connection_config</string>
@@ -35,4 +37,5 @@
     <string name="api_control_endpoint">/control</string>
     <string name="api_speed_endpoint">/control/speed</string>
     <string name="api_steering_endpoint">/control/steering</string>
+    <string name="api_acc_endpoint">/control/adaptivecruise</string>
 </resources>
