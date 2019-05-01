@@ -9,7 +9,8 @@ class UltrasonicSensor(AbstractComponent):
     BCM_PIN_TRIG = 6
     BCM_PIN_ECHO = 12
     SOUND_SPEED_CONSTANT = 17150
-    DISTANCE_SAMPLING_FREQ = 5  # Hz
+    DISTANCE_SAMPLING_FREQ = 33  # Hz
+    MEDIAN_FILTER_SIZE = 5
     THREAD_RUN_REQUESTED = 'THREAD_RUN_REQUESTED'
 
     @staticmethod
@@ -26,12 +27,15 @@ class UltrasonicSensor(AbstractComponent):
             UltrasonicSensor.__instance = self
             self.data_thread = None
             self.latest_distance_value = None
+            self.raw_data = None
             self.ser = None
             self.lock = threading.Lock()
         return
 
     def __collect_data(self):
         t = threading.current_thread()
+        sample_vect = [0] * self.MEDIAN_FILTER_SIZE
+        sample_idx = 0
         while getattr(t, self.THREAD_RUN_REQUESTED, True):
             gpio.output(self.BCM_PIN_TRIG, True)
             time.sleep(0.00001)
@@ -55,15 +59,28 @@ class UltrasonicSensor(AbstractComponent):
 
             pulse_duration = pulse_end - pulse_start
             dist = pulse_duration * self.SOUND_SPEED_CONSTANT
+            sample_vect[sample_idx % self.MEDIAN_FILTER_SIZE] = dist
+            sample_idx += 1
             with self.lock:
-                self.latest_distance_value = round(dist, 2)
-            print('computed distance: ' + str(self.latest_distance_value) + ' cm')
+                self.raw_data = round(dist, 2)
+            dist = sorted(sample_vect)[self.MEDIAN_FILTER_SIZE // 2]
+            with self.lock:
+                self.latest_distance_value = round(dist)
+            # print('computed distance: ' + str(self.latest_distance_value) + ' cm')
             time.sleep(1.0/self.DISTANCE_SAMPLING_FREQ)
         return
 
-    def get_data(self):
+    def get_filtered_data(self):
+        if not self.started:
+            self.start()
         with self.lock:
             return self.latest_distance_value
+
+    def get_data(self):
+        if not self.started:
+            self.start()
+        with self.lock:
+            return self.raw_data
 
     def start(self):
         if not self.data_thread or not self.data_thread.is_alive():

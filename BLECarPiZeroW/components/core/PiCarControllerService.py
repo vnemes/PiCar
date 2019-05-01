@@ -2,6 +2,7 @@ from components.adas.AdaptiveCruiseController import AdaptiveCruiseController
 import RPi.GPIO
 import rpyc
 
+from components.adas.CollisionAvoidanceSystem import CollisionAvoidanceSystem
 from components.services.AbstractComponentService import AbstractComponentService
 
 
@@ -12,7 +13,6 @@ class PiCarControllerService(rpyc.Service, AbstractComponentService):
         pass
 
     def on_disconnect(self, conn):
-        self.exposed_activate_cruise_control(False)
         self.exposed_stop()
 
     def exposed_start(self):
@@ -23,9 +23,7 @@ class PiCarControllerService(rpyc.Service, AbstractComponentService):
         self.__speed_driver.enable_disable_driver(True)
         self.__steer_driver.enable_disable_driver(True)
 
-
     def exposed_stop(self):
-        self.exposed_activate_cruise_control(False)
         self.__speed_driver.enable_disable_driver(False)
         self.__steer_driver.enable_disable_driver(False)
         self.sp.close()
@@ -33,22 +31,25 @@ class PiCarControllerService(rpyc.Service, AbstractComponentService):
         RPi.GPIO.cleanup()
         print('Closed PiCarController with all associated GPIO channels')
 
-    def exposed_activate_cruise_control(self, enable):
-        self.cruise_controller = AdaptiveCruiseController.get_instance()
-        self.cruise_controller.enable_disable_driver(enable, self)
+    def exposed_set_speed_limit(self, limit):
+        self.__speed_driver.change_speed_limit(limit)
         return
 
-    def middleware_set_speed(self, direction, speed):
+    def exposed_get_speed_status(self):
+        return self.__speed_driver.get_status() if self.__speed_driver else False
+
+    def exposed_get_steering_status(self):
+        return self.__steer_driver.get_status() if self.__steer_driver else False
+
+    def exposed_middleware_set_speed(self, direction, speed):
         self.__speed_driver.set_speed(direction, speed)
         return
 
     def exposed_request_speed(self, direction, speed):
-        self.exposed_activate_cruise_control(False)
         self.__speed_driver.set_speed(direction, speed)
         return
 
     def exposed_request_steering(self, direction, steer):
-        self.exposed_activate_cruise_control(False)
         self.__steer_driver.set_steering(direction, steer)
         return
 

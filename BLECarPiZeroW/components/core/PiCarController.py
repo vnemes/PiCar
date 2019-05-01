@@ -48,13 +48,8 @@ class PiCarController:
         self.__speed_driver.enable_disable_driver(enable)
         self.__steer_driver.enable_disable_driver(enable)
         if not enable:
-            self.activate_cruise_control(False)
             RPi.GPIO.cleanup()
             print('Closed PiCarController with all associated GPIO channels')
-        return
-
-    def activate_cruise_control(self, enable):
-        self.cruise_controller.enable_disable_driver(enable, self)
         return
 
     def middleware_set_speed(self, direction, speed):
@@ -65,13 +60,17 @@ class PiCarController:
         self.__speed_driver.change_speed_limit(limit)
         return
 
+    def get_speed_status(self):
+        return self.__speed_driver.get_status() if self.__speed_driver else False
+
+    def get_steering_status(self):
+        return self.__steer_driver.get_status() if self.__steer_driver else False
+
     def request_speed(self, direction, speed):
-        self.activate_cruise_control(False)
         self.__speed_driver.set_speed(direction, speed)
         return
 
     def request_steering(self, direction, steer):
-        self.activate_cruise_control(False)
         self.__steer_driver.set_steering(direction, steer)
         return
 

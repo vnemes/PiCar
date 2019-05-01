@@ -5,6 +5,8 @@ import rpyc
 
 class UltrasonicSensorService(rpyc.Service, AbstractComponentService):
 
+    ALIASES = ["UltrasonicSensor"]
+
     def on_connect(self, conn):
         self.sensor = UltrasonicSensor.get_instance()
 
@@ -23,6 +25,12 @@ class UltrasonicSensorService(rpyc.Service, AbstractComponentService):
         if not self.started:
             self.sensor.enable_disable_driver(True)
         return self.sensor.get_data()
+
+    def exposed_get_filtered_data(self):
+        if not self.started:
+            self.sensor.enable_disable_driver(True)
+        return self.sensor.get_filtered_data()
+
 
 if __name__ == "__main__":
     from rpyc.utils.server import ThreadedServer

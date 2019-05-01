@@ -10,6 +10,9 @@ class AbstractComponentService(abc.ABC):
             self.exposed_stop()
         return
 
+    def exposed_get_status(self):
+        return self.started
+
     @abc.abstractmethod
     def exposed_start(self):
         pass

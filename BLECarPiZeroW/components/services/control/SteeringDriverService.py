@@ -15,6 +15,8 @@ class SteeringDriverService(rpyc.Service, AbstractComponentService):
             self.driver = DCSteeringDriver.get_instance()
         elif platform == PiRevEn.PI3B_PLUS:
             self.driver = ServoSteeringDriver.get_instance()
+        else:
+            raise Exception('Cannot initialize steering due to invalid platform!')
 
     def on_disconnect(self, conn):
         self.exposed_stop()

@@ -9,7 +9,7 @@ class ESCSpeedDriver(AbstractComponent):
     BCM_PIN_SPEED_DIR = 16
     BCM_PIN_SPEED_EN = 20
 
-    GPIO_PWM_FREQUENCY = 20000  # 20kHz
+    GPIO_PWM_FREQUENCY = 16000  # 20kHz
     GPIO_GROUND = 0
 
     @staticmethod
@@ -29,6 +29,7 @@ class ESCSpeedDriver(AbstractComponent):
 
     def change_speed_limit(self, limit):
         self.speed_limit = limit if limit <= 100 else 100
+        print('speed limit: ' + str(self.speed_limit))
 
     def set_speed(self, direction, speed):
         self.set_speed_drv(direction, speed)
@@ -37,17 +38,17 @@ class ESCSpeedDriver(AbstractComponent):
         if speed > self.speed_limit:
             speed = self.speed_limit
         self.speed_pwm.ChangeDutyCycle(speed)
-        gpio.output(self.BCM_PIN_SPEED_DIR, gpio.HIGH if direction == 1 else gpio.LOW)
-        print('speed:\t' + str(speed) + (' forward' if direction == 1 else ' backward'))
+        gpio.output(self.BCM_PIN_SPEED_DIR, gpio.LOW if direction == 1 else gpio.HIGH)
+        print('speed:\t' + str(speed) + (' backward' if direction == 1 else ' forward'))
         return
 
     def start(self):
         gpio.setmode(gpio.BCM)
         output_channels = [self.BCM_PIN_SPEED_PWM, self.BCM_PIN_SPEED_DIR, self.BCM_PIN_SPEED_EN]
         gpio.setup(output_channels, gpio.OUT)
+        gpio.output(self.BCM_PIN_SPEED_EN, gpio.HIGH)
         self.speed_pwm = gpio.PWM(self.BCM_PIN_SPEED_PWM, self.GPIO_PWM_FREQUENCY)
         self.speed_pwm.start(0)
-        gpio.output(self.BCM_PIN_SPEED_EN, gpio.HIGH)
         print('Initialized PowerHBridgeSpeedDriver with PWM frequency of ' + str(self.GPIO_PWM_FREQUENCY) + ' Hz')
         return
 

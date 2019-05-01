@@ -15,6 +15,8 @@ class SpeedDriverService(rpyc.Service, AbstractComponentService):
             self.driver = HBridgeSpeedDriver.get_instance()
         elif platform == PiRevEn.PI3B_PLUS:
             self.driver = ESCSpeedDriver.get_instance()
+        else:
+            raise Exception('Cannot initialize speed driver due to invalid platform!')
 
     def on_disconnect(self, conn):
         self.exposed_stop()
@@ -27,7 +29,7 @@ class SpeedDriverService(rpyc.Service, AbstractComponentService):
         self.driver.enable_disable_driver(False)
         self.started = False
 
-    def exposed_set_speed_limit(self, limit):
+    def exposed_change_speed_limit(self, limit):
         self.driver.change_speed_limit(limit)
 
     def exposed_set_speed(self, direction, speed):
