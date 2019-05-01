@@ -38,8 +38,8 @@ class AdaptiveCruiseController(AbstractRefComponent):
             ultrasonic = UltrasonicSensor.get_instance()
         elif platform == PiRevEn.PI3B_PLUS:
             # self.pid = PID(-0.5, -0.1, -0.25, setpoint=self.TARGET_DISTANCE)
-            self.pid = PID(-0.185, -0.015, -0.035, setpoint=self.TARGET_DISTANCE)
-            ultrasonic_service = rpyc.connect_by_service("AdaptiveCruise")
+            self.pid = PID(-0.1, 0, -0.015, setpoint=self.TARGET_DISTANCE)
+            ultrasonic_service = rpyc.connect_by_service("UltrasonicSensor")
             ultrasonic = ultrasonic_service.root
         else:
             raise Exception('Cannot initialize ACC due to invalid platform!')
