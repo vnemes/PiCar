@@ -7,6 +7,8 @@ class UltrasonicSensorService(rpyc.Service, AbstractComponentService):
 
     ALIASES = ["UltrasonicSensor"]
 
+    exposed_DISTANCE_SAMPLING_FREQ = UltrasonicSensor.get_instance().DISTANCE_SAMPLING_FREQ
+
     def on_connect(self, conn):
         self.sensor = UltrasonicSensor.get_instance()
 

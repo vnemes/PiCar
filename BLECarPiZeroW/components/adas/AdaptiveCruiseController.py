@@ -31,7 +31,7 @@ class AdaptiveCruiseController(AbstractRefComponent):
             self.pid = None
         return
 
-    def __pid_control_speed(self, controller):
+    def __pid_control_speed(self, speed_driver):
         platform = PiRevEn.detect_platform()
         if platform == PiRevEn.PIZEROW:
             self.pid = PID(-4, -0.2, -1, setpoint=self.TARGET_DISTANCE)
@@ -51,15 +51,15 @@ class AdaptiveCruiseController(AbstractRefComponent):
         while getattr(t, self.THREAD_RUN_REQUESTED, True):
             dist = ultrasonic.get_filtered_data()
             next_speed = round(self.pid(dist))
-            controller.middleware_set_speed(1 if next_speed > 0 else 0, math.floor(abs(next_speed)))
+            speed_driver.set_speed(1 if next_speed > 0 else 0, math.floor(abs(next_speed)))
             print('PID: dist: %.2f - pwm: %.2f' % (dist, next_speed))
             time.sleep(self.pid.sample_time)
-        controller.middleware_set_speed(0, 0)
+        speed_driver.set_speed(0, 0)
         return
 
-    def start(self, caller):
+    def start(self, speed_driver):
         if not self.pid_thread or not self.pid_thread.is_alive():
-            self.pid_thread = threading.Thread(target=self.__pid_control_speed, args=[caller])
+            self.pid_thread = threading.Thread(target=self.__pid_control_speed, args=[speed_driver])
             self.pid_thread.daemon = True
             self.pid_thread.start()
         return

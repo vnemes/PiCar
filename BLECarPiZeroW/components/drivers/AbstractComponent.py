@@ -7,11 +7,11 @@ class AbstractComponent(abc.ABC):
 
     def enable_disable_driver(self, enable):
         if enable:
-            self.started = True
             self.start()
+            self.started = True
         else:
-            self.started = False
             self.stop()
+            self.started = False
         return
 
     def get_status(self):
