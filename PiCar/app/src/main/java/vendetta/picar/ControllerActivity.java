@@ -39,6 +39,8 @@ import vendetta.picar.connection.ConnectionConfig;
 import vendetta.picar.connection.ConnectionTypeEn;
 import vendetta.picar.control.SpeedController;
 import vendetta.picar.http.control.ACCControllerHTTP;
+import vendetta.picar.http.control.CollAvoidControllerHTTP;
+import vendetta.picar.http.control.LaneKeepAssistantHTTP;
 import vendetta.picar.http.control.PlatformControllerHTTP;
 import vendetta.picar.http.control.SpeedControllerHTTP;
 import vendetta.picar.control.SteeringController;
@@ -66,9 +68,10 @@ public class ControllerActivity extends Activity {
     private UltrasonicSensor ultrasonicSensor;
     private GPSSensor gpsSensor;
 
-    private boolean isConnectionActive = false;
+    private volatile boolean isConnectionActive = false;
     private boolean oneOrTwoJoysticks, enableGPS = false, enableCamera= false,
-            enableUltrasonic = false, enableACC = false;
+            enableUltrasonic = false, enableACC = false, enableCollAv = false,
+            enableLKA = false;
     private int maxSpeed = 50;
     private final static String TAG = ControllerActivity.class.getSimpleName();
     private static final int JOYSTICK_UPDATE_INTERVAL = 333; // every 333 ms = 3 times per second
@@ -135,7 +138,7 @@ public class ControllerActivity extends Activity {
 
         healthCheckHandler = new Handler();
         new PlatformControllerHTTP(this, effectiveIP)
-                .enableDisablePlatform(true,
+                .enableDisablePlatform(true, config.getConnPlatform(),
                         response -> {
                             onConnectionChange(ConnectionStateEn.CONNECTED);
                             new HealthRequest(this, effectiveIP).cyclicHealthCheck(healthCheckHandler);
@@ -157,6 +160,9 @@ public class ControllerActivity extends Activity {
         boolean enableUltrasonicRequest = preferences.getBoolean(this.getString(R.string.pref_key_enable_ultrasonic), false);
         boolean enableGPSRequest = preferences.getBoolean(this.getString(R.string.pref_key_enable_gps),false);
         boolean enableACCRequest = preferences.getBoolean(this.getString(R.string.pref_key_enable_acc),false);
+        boolean enableCollAvRequest = preferences.getBoolean(this.getString(R.string.pref_key_enable_collav), false);
+        boolean enableLKARequest = preferences.getBoolean(this.getString(R.string.pref_key_enable_lka), false);
+
 
         if (enableCameraRequest && enableGPSRequest){
             Toast.makeText(this,"Cannot have both camera and GPS",Toast.LENGTH_LONG).show();
@@ -169,16 +175,24 @@ public class ControllerActivity extends Activity {
         }
         if (enableUltrasonic != enableUltrasonicRequest)
             enableDisableUltrasonic(enableUltrasonicRequest);
+
         enableControls(oneOrTwoJoysticks);
 
         if (enableACC != enableACCRequest)
             enableDisableAcc(enableACCRequest);
 
+        if (enableCollAv != enableCollAvRequest)
+            enableCollAv(enableCollAvRequest);
+
+        if (enableLKA != enableLKARequest)
+            enableLKA(enableLKARequest);
 
         enableCamera = enableCameraRequest;
         enableGPS = enableGPSRequest;
         enableUltrasonic = enableUltrasonicRequest;
         enableACC = enableACCRequest;
+        enableCollAv = enableCollAvRequest;
+        enableLKA = enableLKARequest;
 
         //Register to receive broadcasts from the MessageService
         messageReceiver = new BroadcastReceiver() {
@@ -313,6 +327,14 @@ public class ControllerActivity extends Activity {
         new ACCControllerHTTP(this, effectiveIP).enableDisableACC(enable);
     }
 
+    private void enableCollAv(boolean enable) {
+        new CollAvoidControllerHTTP(this, effectiveIP).enableDisableACC(enable);
+    }
+
+    private void enableLKA(boolean enable){
+        new LaneKeepAssistantHTTP(this, effectiveIP).enableDisableLKA(enable);
+    }
+
 
     public void onConnectionChange(ConnectionStateEn connectionState) {
         WearMessageScheduler.scheduleStateChangeMessage(this, connectionState);
@@ -363,7 +385,8 @@ public class ControllerActivity extends Activity {
 
     private void updateMaxSpeed(int value) {
         maxSpeedTv.setText(String.format(Locale.ENGLISH, "%d%%", value));
-        speedController.setMaxSpeed(value);
+        if (isConnectionActive)
+            speedController.setMaxSpeed(value);
     }
 
     public void updateCrtSpeedTV(int value) {
@@ -450,7 +473,7 @@ public class ControllerActivity extends Activity {
 //            new ServiceRequest(this, effectiveIP).request(ServiceEnum.PICAMERA_SERVICE, CommandEnum.STOP);
             enableDisableUltrasonic(false);
             //gpsSensor.enableDisableSensor(false);
-            new PlatformControllerHTTP(this,effectiveIP).enableDisablePlatform(false);
+            new PlatformControllerHTTP(this,effectiveIP).enableDisablePlatform(false, config.getConnPlatform());
         }
         // unregister wifi connection receiver in order not to leak it
         if (config.getConnType().equals(ConnectionTypeEn.WIFI_AP)) {

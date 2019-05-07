@@ -78,6 +78,13 @@
                 android:icon="@android:drawable/ic_menu_upload_you_tube" />
 
             <CheckBoxPreference
+                android:key="@string/pref_key_enable_collav"
+                android:title="Collision Avoidance"
+                android:defaultValue="false"
+                android:summary="Automatic braking when distance to forward obstacle exceeds limit"
+                android:icon="@android:drawable/ic_menu_sort_by_size" />
+
+            <CheckBoxPreference
                 android:key="@string/pref_key_enable_lka"
                 android:title="Lane Keep Assist"
                 android:defaultValue="false"

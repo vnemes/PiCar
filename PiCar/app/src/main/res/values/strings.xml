@@ -13,6 +13,7 @@
     <string name="pref_key_enable_camera">enable_camera_stream</string>
     <string name="pref_key_enable_ultrasonic">enable_distance_measurement</string>
     <string name="pref_key_enable_acc">enable_adaptive_cruise_control</string>
+    <string name="pref_key_enable_collav">enable_collision_avoidance</string>
     <string name="pref_key_enable_lka">enable_lane_keep_assist</string>
     <string name="pref_key_enable_gps">enable_gps_tracking</string>
     <string name="pref_key_first_launch">first_launch</string>
@@ -37,5 +38,7 @@
     <string name="api_control_endpoint">/control</string>
     <string name="api_speed_endpoint">/control/speed</string>
     <string name="api_steering_endpoint">/control/steering</string>
-    <string name="api_acc_endpoint">/control/adaptivecruise</string>
+    <string name="api_acc_endpoint">/adas/adaptivecruise</string>
+    <string name="api_coll_av_endpoint">/adas/collisionavoidance</string>
+    <string name="api_lka_endpoint">/adas/lanekeepassist</string>
 </resources>
