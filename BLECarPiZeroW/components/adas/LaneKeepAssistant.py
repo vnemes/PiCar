@@ -44,7 +44,7 @@ class LaneKeepAssistant(AbstractRefComponent):
                 steer_driver.set_steering(0, steer)
             else:
                 steer = vanishing_point / 10
-                steer_driver.set_steering(1 if vanishing_point > 0 else 0, steer)
+                steer_driver.set_steering(1 if vanishing_point > 0 else 0, abs(steer))
             print('LKA: vp: %.2f - steer: %.2f' % (vanishing_point, steer))
             time.sleep(0.1)
         steer_driver.set_steering(0, 0)
@@ -66,12 +66,12 @@ class LaneKeepAssistant(AbstractRefComponent):
         return
 
 
-if __name__ == '__main__':
-    try:
-        import rpyc
-        lka = LaneKeepAssistant.get_instance()
-        driver = rpyc.connect_by_service("STEERINGDRIVER")
-        lka.enable_disable_driver(True, driver.root)
-        time.sleep(30)
-    finally:
-        lka.enable_disable_driver(False, None)
+# if __name__ == '__main__':
+#     try:
+#         import rpyc
+#         lka = LaneKeepAssistant.get_instance()
+#         driver = rpyc.connect_by_service("STEERINGDRIVER")
+#         lka.enable_disable_driver(True, driver.root)
+#         time.sleep(30)
+#     finally:
+#         lka.enable_disable_driver(False, None)

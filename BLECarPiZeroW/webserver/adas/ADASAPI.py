@@ -10,6 +10,8 @@ acc_service = None
 acc = None
 colav_service = None
 colav = None
+lka_service = None
+lka = None
 
 
 @adas_api.route("/adaptivecruise", methods=['POST'])
@@ -82,3 +84,34 @@ def service_enable_colav_request():
 def colav_status_request():
     status_json = {"enabled": colav.get_status() if colav else False}
     return jsonify(status_json)
+
+
+@adas_api.route("/lanekeepassist", methods=['POST'])
+def service_enable_lka_request():
+    enable = True if request.json['enabled'].lower() == "true" else False
+    platform = PiRevEn.detect_platform()
+
+    global lka
+
+    if platform == PiRevEn.PI3B_PLUS:
+        import rpyc
+        global lka_service
+        if enable:
+            lka_service = rpyc.connect_by_service("LaneKeepAssistant")
+            lka = lka_service.root
+            lka.enable_disable_driver(True)
+        else:
+            lka.enable_disable_driver(False)
+            lka.close()
+            lka = None
+            lka_service = None
+    else:
+        raise Exception('Cannot initialize lane keep assistant due to invalid platform!')
+    return Response(request.data)
+
+
+@adas_api.route("/lanekeepassist/status", methods=['GET'])
+def lka_status_request():
+    status_json = {"enabled": colav.get_status() if colav else False}
+    return jsonify(status_json)
+
