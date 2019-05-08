@@ -1,0 +1,11 @@
+[Unit]
+Description=Webserver for Flask PiCar application
+After=network.target
+
+[Service]
+User=root
+ExecStart=/usr/local/bin/gunicorn -b 0.0.0.0:5000 --pythonpath /home/vendetta/PiCar webserver.main:app
+Environment=LANG=en_US.UTF-8,LC_ALL=en_US.UTF-8
+
+[Install]
+WantedBy=multi-user.target
