@@ -1,5 +1,4 @@
 import atexit
-import subprocess
 
 from flask import Flask
 

@@ -1,11 +1,14 @@
 from flask import Blueprint, Response, jsonify
 import os
 
+from components.core.WatchDog import WatchDog
+
 health_api = Blueprint('health_api', __name__)
 
 
 @health_api.route("", methods=['GET'])
 def health_check():
+    WatchDog.get_instance().reset()
     json = {"status": "ok"}
     return jsonify(json)
 

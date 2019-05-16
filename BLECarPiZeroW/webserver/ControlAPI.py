@@ -4,6 +4,8 @@ from components.core.PiRevEn import PiRevEn
 from components.core.PlatformEn import PlatformEn
 import rpyc
 
+from components.core.WatchDog import WatchDog
+
 __speed_service = None
 __steer_service = None
 speed_driver = None
@@ -78,7 +80,6 @@ def service_enable_request():
             steer_driver = __steer_service.root
             speed_driver.enable_disable_driver(True)
             steer_driver.enable_disable_driver(True)
-            # todo enable WATCHDOG here
         else:
             speed_driver.enable_disable_driver(False)
             steer_driver.enable_disable_driver(False)
@@ -86,6 +87,7 @@ def service_enable_request():
             __steer_service.close()
             speed_driver, steer_driver = None, None
             __speed_service, __steer_service = None, None
+        WatchDog.get_instance().enable_disable_driver(enable)
         return Response(request.data)
     else:
         return Response(status=409)
