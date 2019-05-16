@@ -44,7 +44,7 @@ class LaneKeepAssistant(AbstractRefComponent):
                 steer_driver.set_steering(0, steer)
             else:
                 steer = vanishing_point / 10
-                steer_driver.set_steering(1 if vanishing_point > 0 else 0, abs(steer))
+                steer_driver.set_steering(0 if vanishing_point > 0 else 1, abs(steer))
             print('LKA: vp: %.2f - steer: %.2f' % (vanishing_point, steer))
             time.sleep(0.1)
         steer_driver.set_steering(0, 0)
