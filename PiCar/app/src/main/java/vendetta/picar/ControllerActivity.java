@@ -298,7 +298,8 @@ public class ControllerActivity extends Activity {
             new Handler().postDelayed(new Runnable() {
                 @Override
                 public void run() {
-                    Camera camera = new Camera(Source.ConnectionType.RawTcpIp, "picamera", effectiveIP.substring(7), 1324);
+                    String formattedIp = effectiveIP.split(":")[1].substring(2);
+                    Camera camera = new Camera(Source.ConnectionType.RawTcpIp, "picamera", formattedIp, 1324);
                     Log.d(getClass().getSimpleName(), "camera: " + camera.toString());
 
                     // get the frame layout
