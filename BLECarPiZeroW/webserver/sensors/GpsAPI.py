@@ -1,7 +1,7 @@
 from flask import Blueprint, Response, request, jsonify
 from components.drivers.sensors.GPSSensor import GPSSensor
 
-gps = GPSSensor.get_instance()
+gps = None
 
 gps_api = Blueprint('gps_api', __name__)
 
@@ -20,8 +20,10 @@ def gps_value_request():
         return Response(status=204)
 
 
-@gps_api.route("", methods=['POST'])
-def service_enable_request():
-    enable = True if request.args['enabled'].lower() == "true" else False
+@gps_api.route("/gps", methods=['POST'])
+def gps_enable_request():
+    enable = True if request.json['enabled'].lower() == "true" else False
+    global gps
+    gps = GPSSensor.get_instance()
     gps.enable_disable_driver(enable)
     return Response(request.data)

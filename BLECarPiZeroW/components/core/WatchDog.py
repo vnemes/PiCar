@@ -1,5 +1,8 @@
 from threading import Timer
 
+from components.core import PlatformEn
+from components.core.PiRevEn import PiRevEn
+
 from components.drivers.AbstractComponent import AbstractComponent
 
 
@@ -38,15 +41,23 @@ class WatchDog(AbstractComponent):
 
     @staticmethod
     def __handle_watchdog_expiry():
-        import rpyc
-        __speed_service = rpyc.connect_by_service("SpeedDriver")
-        __steer_service = rpyc.connect_by_service("SteeringDriver")
-        speed_driver = __speed_service.root
-        steer_driver = __steer_service.root
-        speed_driver.set_speed(0, 0)
-        steer_driver.set_steering(0, 0)
-        speed_driver.enable_disable_driver(False)
-        steer_driver.enable_disable_driver(False)
+        platform = PiRevEn.detect_platform()
+        if platform == PiRevEn.PI3B_PLUS:
+            import rpyc
+            __speed_service = rpyc.connect_by_service("SpeedDriver")
+            __steer_service = rpyc.connect_by_service("SteeringDriver")
+            speed_driver = __speed_service.root
+            steer_driver = __steer_service.root
+            speed_driver.set_speed(0, 0)
+            steer_driver.set_steering(0, 0)
+            speed_driver.enable_disable_driver(False)
+            steer_driver.enable_disable_driver(False)
+        else:
+            from components.core.PiCarController import PiCarController
+            controller = PiCarController.get_instance()
+            controller.request_speed(0, 0)
+            controller.request_steering(0, 0)
+            controller.activate_control(False, PlatformEn.SHELBYGT500)
 
 
 

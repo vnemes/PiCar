@@ -1,7 +1,5 @@
 import math
 import threading
-
-import rpyc
 from simple_pid import PID
 import time
 
@@ -37,6 +35,7 @@ class AdaptiveCruiseController(AbstractRefComponent):
             self.pid = PID(-4, -0.2, -1, setpoint=self.TARGET_DISTANCE)
             ultrasonic = UltrasonicSensor.get_instance()
         elif platform == PiRevEn.PI3B_PLUS:
+            import rpyc
             # self.pid = PID(-0.5, -0.1, -0.25, setpoint=self.TARGET_DISTANCE)
             self.pid = PID(-0.1, 0, -0.015, setpoint=self.TARGET_DISTANCE)
             ultrasonic_service = rpyc.connect_by_service("UltrasonicSensor")

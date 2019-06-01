@@ -3,7 +3,6 @@ from components.drivers.RCBuggy.ServoSteeringDriver import ServoSteeringDriver
 from components.drivers.ShelbyGT500.DCSteeringDriver import DCSteeringDriver
 from components.drivers.ShelbyGT500.HBridgeSpeedDriver import HBridgeSpeedDriver
 from components.core.PlatformEn import PlatformEn
-from components.adas.AdaptiveCruiseController import AdaptiveCruiseController
 import RPi.GPIO
 
 
@@ -25,7 +24,6 @@ class PiCarController:
             self.__active_platform = PlatformEn.NONE
             self.__speed_driver = None
             self.__steer_driver = None
-            self.cruise_controller = AdaptiveCruiseController.get_instance()
         return
 
     def activate_control(self, enable, requested_platform):

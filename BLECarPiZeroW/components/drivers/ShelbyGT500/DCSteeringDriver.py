@@ -34,7 +34,7 @@ class DCSteeringDriver(AbstractComponent):
 
     def __normalize(self, value):
         if value:
-            value = self.GPIO_TORQUE_CORRECT + value / 2
+            value = self.GPIO_TORQUE_CORRECT + (value / 2)
         return value
 
     def start(self):

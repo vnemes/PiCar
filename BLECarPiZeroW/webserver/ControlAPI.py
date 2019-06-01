@@ -2,7 +2,6 @@ from flask import Blueprint, request, Response, jsonify
 
 from components.core.PiRevEn import PiRevEn
 from components.core.PlatformEn import PlatformEn
-import rpyc
 
 from components.core.WatchDog import WatchDog
 
@@ -60,6 +59,7 @@ def steering_status_request():
 def service_enable_request():
     enable = True if request.json['enabled'].lower() == "true" else False
 
+    WatchDog.get_instance().enable_disable_driver(enable)
     global controller
     platform = PiRevEn.detect_platform()
 
@@ -73,6 +73,7 @@ def service_enable_request():
         global __speed_service, __steer_service, speed_driver, steer_driver
         controller = None
 
+        import rpyc
         if enable and not (speed_driver or steer_driver):
             __speed_service = rpyc.connect_by_service("SpeedDriver")
             __steer_service = rpyc.connect_by_service("SteeringDriver")
@@ -87,7 +88,6 @@ def service_enable_request():
             __steer_service.close()
             speed_driver, steer_driver = None, None
             __speed_service, __steer_service = None, None
-        WatchDog.get_instance().enable_disable_driver(enable)
         return Response(request.data)
     else:
         return Response(status=409)

@@ -1,4 +1,3 @@
-import rpyc
 from flask import Blueprint, request, Response, jsonify
 
 from components.core.PiRevEn import PiRevEn
@@ -41,6 +40,7 @@ def service_enable_request():
         global ultrasonic_service
 
         if enable:
+            import rpyc
             ultrasonic_service = rpyc.connect_by_service("UltrasonicSensor")
             ultrasonic = ultrasonic_service.root
             ultrasonic.enable_disable_driver(True)
