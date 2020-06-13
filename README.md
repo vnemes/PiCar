@@ -4,7 +4,7 @@
 
 ## System Overview
 
-### PiCar's Architecture
+## PiCar's Architecture
 
 At a high-level, the system can be viewed as a client-server architecture,
 with the embedded platform playing the role of a server handling requests
@@ -112,6 +112,91 @@ Energy.
 
 The application consists of 3 activities, namely ConnectActivity, Controller-
 Activity and SettingsActivity that are written in Java and Kotlin.
+
+### Main Menu (ConnectActivity)
+
+This activity provides the management of connection configurations and
+allows the user to connect to the embedded platform through different connection
+types described later in this sub-section.
+
+![ConnectActivity](https://github.com/vnemes/PiCar/blob/Diploma-Thesis/Docs/connectactivity.jpg)
+
+The configurations are persistent, i.e. the values that were previously saved
+will be available between an application restarts
+
+The user interface is split into two main areas of interest: on the left a ListView
+containing the available configurations, and on the right a Fragment that gets
+displayed with information corresponding to the selected configuration (name,
+IP, connection type image, etc.) The following methods of communication with
+the platform are available, as described in the ConectionTypeEn enum:
+- the Pi’s local IP when both the client and the platform are on the same
+network
+- the Pi’s global IP if the network the platform resides in has the appropriate
+ports forwarded
+- the Pi’s WiFi Network SSID and its IP inside its own network if the platform
+created its own wireless HotSpot
+- the Bluetooth Low Energy Device UUID if the platform is capable of this
+kind of communication
+
+When the user decides to connect to the selected option, ControllerActivity
+is started and the selected configuration data is bundled with the activity start
+Intent in order to establish a connection using the IP, SSID or BLE UUID of the
+target device. The following figure describes the simplified flow for connecting
+to the target plaform using REST calls:
+
+![ConnectActivity](https://github.com/vnemes/PiCar/blob/Diploma-Thesis/Docs/sequence-android-enable.png)
+
+### Remote Controller (ControllerActivity)
+
+This activity is launched in an attempt to establish a connection to the plat-form.  After the connection has succeeded, the application provides the userone or two joysticks (based on preferences) to control the speed and steering of the vehicle.
+
+
+![ControlActivity](https://github.com/vnemes/PiCar/blob/Diploma-Thesis/Docs/controlactivity.jpg)
+
+This activity also provides a video overlay with the live video feed from theplatform’s on-board camera or a map with the global position of the vehicle, acquired using its GPS sensor. This activity ensures that the connection tothe vehicle is stopped while the app is put in background and re-connectedwhen the app is resumed in order to save the embedded platform’s batteryand prevent useless data traffic.
+
+### Settings (SettingsActivity)
+
+The SettingsActivity can be accessed from any screen of the application,and it allows the personalization of various UI preferences, embedded platformparameters or enabling/disabling the driver assistance modules.The list of preferences is defined in thepreferences.xmlresource file, andthe change of their value can be detected after leaving the SettingsActivity byquerying the shared preferences manager for the respective key value pairs.
+
+![SettingsActivity](https://github.com/vnemes/PiCar/blob/Diploma-Thesis/Docs/settingsactivity.jpg)
+
+### Android Wear Module
+
+The Android application provides a wear OS module that displays the con-nection status to the embedded platform and allows the control of its speedand steering using a joystick.
+
+![WearModule](https://github.com/vnemes/PiCar/blob/Diploma-Thesis/Docs/wear.jpg)
+
+The communication between the wear module and the application is per-formed through a messaging protocol. Its principle of operation includes registering the appropriate message receivers and broadcasters to a previouslydefined channel that abstracts the bluetooth connection between the deviceand the wearable.
+
+## Driver Assistance Systems
+
+### Adaptive Cruise Control
+
+The Adaptive Cruise Control module ensures that the electric vehicle main-tains a constant distance to the vehicle (obstacle) in front by comparing thevalues retrieved from the ultrasonic sensor to the target distance and applyingacceleration or braking pre-emptively.
+
+The module retrieves the filtered distance values from the Ultrasonic SensorService with a frequency of 33 Hertz, the same frequency the sensor uses for data acquisition. The values are then fed into a PID Controller which has as output the target acceleration values to be sent to the Speed Driver of the Platform.
+
+![AdaptiveCruiseControl](https://github.com/vnemes/PiCar/blob/Diploma-Thesis/Docs/accflow.png)
+
+The  target  distance  to  the  next  vehicle  is  hard-coded  to  50  centimetersbecause it is directly related to the PID controller’s parameters which havebeen computed using an empirical method:
+- A __Proportional__ gain of -0.1 was identified to result in acceleration out-put values that keep the vehicle in a +/- 5 centimeters range of the target distance, proving stable enough to only cause minor oscillations atsteady-state.
+- Setting the __Derivative__ gain of -0.015 ensured that the vehicle reacts pro-portionally to both small and big changes in distance, thus reducing the oscillations and improving its dynamic response.
+- The __Integrative__ gain was set to 0 because the resulting +/- 5 cm rangewas satisfactory enough for the application, and even small values wouldcause the acceleration values to drift outside the steady state.The  values  outputted  by  the  PID  are  in  the  closed  interval  [-100,  +100]and represent the estimated acceleration percentages to be applied in order tobring the vehicle closer to the target distance.  The Python implementation ofthe PID controller is achieved through the use of Martin Lundberg’s simple_pidlibrary which is MIT licensed.
+
+### Lane Keep Assist
+
+The Lane Keep Assist algorithm uses visual cues from the camera in orderto estimate thevanishing pointof the road, which is sent to the steering driverto command the general direction of the vehicle in order to keep it centered inits lane.  The algorithm relies on the road surface having clear markings forboth sides of the lane, preferably using a shade that contrasts the base colorof the road.
+
+
+![AdaptiveCruiseControl](https://github.com/vnemes/PiCar/blob/Diploma-Thesis/Docs/lka6.png)
+
+
+
+
+
+
+
 
 
 
