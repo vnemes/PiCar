@@ -1,9 +1,10 @@
 # PiCar 
-## A Distributed Embedded System for Electric Vehicles Remote Control using Driver Assistance Systems
+### A Distributed Embedded System for Electric Vehicles Remote Control using Driver Assistance Systems
 
 [![GitHub license](https://img.shields.io/github/license/Naereen/StrapDown.js.svg)](https://github.com/Naereen/StrapDown.js/blob/master/LICENSE)
 [![GitHub contributors](https://img.shields.io/github/contributors/Naereen/StrapDown.js.svg)](https://GitHub.com/Naereen/StrapDown.js/graphs/contributors/)
 [![MIT license](https://img.shields.io/badge/License-MIT-blue.svg)](https://lbesson.mit-license.org/)
+[![GitHub issues-closed](https://img.shields.io/github/issues-closed/Naereen/StrapDown.js.svg)](https://GitHub.com/Naereen/StrapDown.js/issues?q=is%3Aissue+is%3Aclosed)
 
 ![Overview](https://github.com/vnemes/PiCar/blob/Diploma-Thesis/Docs/acc1.jpeg)
 
@@ -13,25 +14,7 @@
 - Android (REST) Client
 - Driver Assistance Systems – Lane Keep Assist / Adaptive Cruise Control
 
-## Deployment and Development Process
-
-In order to remotely develop and deploy software to the Raspberry Pi, I first
-needed to establish a secure link between my development machine and the
-Pi. This was achievable by enabling and securing ssh on the target platform
-by changing the port from 22 to 443, disabling password authentication
-and enabling public private key authentication based on certificates.
-
-![Deployment Process](https://github.com/vnemes/PiCar/blob/Diploma-Thesis/Docs/deployment.jpg)
-
-Apart from having the ability to remotely configure the Raspberry Pi even
-from other networks (after opening the port on my router at home and setting
-up dynamic DNS from my network provider), enabling ssh has also allowed the
-use of JetBrains’ IntelliJ IDEA IDE for deploying (using SFTP), running and
-debugging the software directly on the target platform’s Python interpreter.
-
 ## Backend: Embedded Platform
-
-![Backend Architecture](https://github.com/vnemes/PiCar/blob/Diploma-Thesis/Docs/Architecture-Backend.png)
 
 - Pi Zero W – Tightly coupled, singletons
 - Pi 3B+ – Microservice architecture (RPyC)
@@ -45,6 +28,9 @@ debugging the software directly on the target platform’s Python interpreter.
 - GPS sensor driver
   - NMEA serial string parsing
 - Jevois smart vision driver
+
+![Backend Architecture](https://github.com/vnemes/PiCar/blob/Diploma-Thesis/Docs/Architecture-Backend.png)
+
 
 ## FrontEnd: Android Application 
 
@@ -69,7 +55,7 @@ Energy.
 The application consists of 3 activities, namely ConnectActivity, Controller-
 Activity and SettingsActivity that are written in Java and Kotlin.
 
-## Main Menu (ConnectActivity)
+### Main Menu (ConnectActivity)
 
 This activity provides the management of connection configurations and
 allows the user to connect to the embedded platform through different connection
@@ -147,6 +133,22 @@ The Lane Keep Assist algorithm uses visual cues from the camera in orderto estim
 - Ultrasonic Sensor – distance measurement
   - Sample time 33 Hz
 - GPS Sensor
+
+## Deployment and Development Process
+
+In order to remotely develop and deploy software to the Raspberry Pi, I first
+needed to establish a secure link between my development machine and the
+Pi. This was achievable by enabling and securing ssh on the target platform
+by changing the port from 22 to 443, disabling password authentication
+and enabling public private key authentication based on certificates.
+
+![Deployment Process](https://github.com/vnemes/PiCar/blob/Diploma-Thesis/Docs/deployment.jpg)
+
+Apart from having the ability to remotely configure the Raspberry Pi even
+from other networks (after opening the port on my router at home and setting
+up dynamic DNS from my network provider), enabling ssh has also allowed the
+use of JetBrains’ IntelliJ IDEA IDE for deploying (using SFTP), running and
+debugging the software directly on the target platform’s Python interpreter.
 
 
 
