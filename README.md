@@ -14,7 +14,12 @@
 - Android (REST) Client
 - Driver Assistance Systems – Lane Keep Assist / Adaptive Cruise Control
 
-As for technologies:
+<p float="left">
+  <img src="https://github.com/vnemes/PiCar/blob/master/Docs/acc_cropped.gif" width="338" />
+  <img src="https://github.com/vnemes/PiCar/blob/master/Docs/lka_short.gif" width="562" /> 
+</p>
+
+Technologies used:
 - C / C++ for Bluetooth Low Energy embedded platform
 - Python (Flask + RPyC) for Distributed backend platform
   - drivers for speed, steering, ultrasonic sensor, gps also in Python
