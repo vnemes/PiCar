@@ -14,6 +14,13 @@
 - Android (REST) Client
 - Driver Assistance Systems – Lane Keep Assist / Adaptive Cruise Control
 
+As for technologies:
+- C / C++ for Bluetooth Low Energy embedded platform
+- Python (Flask + RPyC) for Distributed backend platform
+  - drivers for speed, steering, ultrasonic sensor, gps also in Python
+- Java / Kotlin for Android client 
+- Linux (systemd) services 
+
 ## Backend: Embedded Platform
 
 - Pi Zero W – Tightly coupled, singletons
