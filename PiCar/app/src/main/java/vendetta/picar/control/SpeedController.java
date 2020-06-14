@@ -43,6 +43,10 @@ public abstract class SpeedController {
 
     public void setMaxSpeed(int maxSpeed){
         speedLimit = maxSpeed;
+        requestSetSpeedLimit(maxSpeed);
+    }
+
+    protected void requestSetSpeedLimit(int maxSpeed){
     }
 
 

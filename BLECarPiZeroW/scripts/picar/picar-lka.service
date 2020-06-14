@@ -1,0 +1,14 @@
+[Unit]
+Description=RPyC service for the PiCar lane keep assistant
+PartOf=picar-webserver.service
+After=picar-rpyc.service
+After=network.target
+
+[Service]
+User=vendetta
+Environment=LANG=en_US.UTF-8,LC_ALL=en_US.UTF-8
+ExecStart=/usr/bin/python3 /home/vendetta/PiCar/components/services/adas/LKAService.py
+Environment="PYTHONPATH=$PYTHONPATH:/home/vendetta/PiCar"
+
+[Install]
+WantedBy=picar-webserver.service

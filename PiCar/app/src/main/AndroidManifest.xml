@@ -38,7 +38,8 @@
         </activity>
         <activity
             android:name=".ControllerActivity"
-            android:screenOrientation="landscape" />
+            android:screenOrientation="landscape"
+            android:configChanges="orientation|screenSize"/>
         <activity
             android:name=".SettingsActivity"
             android:screenOrientation="landscape" />

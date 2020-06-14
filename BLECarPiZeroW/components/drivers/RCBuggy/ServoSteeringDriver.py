@@ -26,10 +26,10 @@ class ServoSteeringDriver(AbstractComponent):
         _STEER_TO_PWIDTH_RATIO = 0.025
         _90_DEG_IN_PWIDTH = 7.5
         steering_displacement = steering * _STEER_TO_PWIDTH_RATIO
-        steering_displacement -= 2 * direction * steering_displacement  # invert on direction
-        steering_pulse_width = _90_DEG_IN_PWIDTH + steering_displacement
+        steering_displacement = steering_displacement if direction == 1 else - steering_displacement
+        steering_pulse_width = _90_DEG_IN_PWIDTH + steering_displacement  # invert on direction
         self.steering_pwm.ChangeDutyCycle(steering_pulse_width)
-        print('steer:\t' + str(steering) + (' right' if direction == 1 else ' left') + ' pwm: ' + str(
+        print('steer:\t' + str(steering) + (' left' if direction == 1 else ' right') + ' pwm: ' + str(
             steering_pulse_width))
 
     def start(self):

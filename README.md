@@ -1,113 +1,177 @@
-# BLECar
+# PiCar 
+## A Distributed Embedded System for Electric Vehicles Remote Control using Driver Assistance Systems
 
-[![Codacy Badge](https://api.codacy.com/project/badge/Grade/7061e2842fba4157bb070a54fac7eebb)](https://app.codacy.com/app/Metonimie/BLECar?utm_source=github.com&utm_medium=referral&utm_content=metonimie/BLECar&utm_campaign=badger)
+[![GitHub license](https://img.shields.io/github/license/Naereen/StrapDown.js.svg)](https://github.com/Naereen/StrapDown.js/blob/master/LICENSE)
+[![GitHub contributors](https://img.shields.io/github/contributors/Naereen/StrapDown.js.svg)](https://GitHub.com/Naereen/StrapDown.js/graphs/contributors/)
+[![MIT license](https://img.shields.io/badge/License-MIT-blue.svg)](https://lbesson.mit-license.org/)
 
-## User Requirements
+![Overview](https://github.com/vnemes/PiCar/blob/Diploma-Thesis/Docs/acc1.jpeg)
 
-* The system must provide its users an interface to control a Radio-Controlled Car via WiFi/Bluetooth through an Android application.
-* The system shall offer speed and steering control in order to move the car.
-* The system will provide a live video feed to its users when controlling the car through the Android application.
-* The system will provide the means to retrieve its current location (coordinates).
-* The system may offer safety features such as automatic braking, speed limiting and collision avoidance.
-* The system may offer computer vision features, such as object recognition and automatic lane detection.
-* The system must be modular, providing ease of adding a new component (e.g. Accelerometer module).
+- Electric vehicle embedded platform
+- Remote control (Wi-Fi or BLE)
+- Distributed embedded software application
+- Android (REST) Client
+- Driver Assistance Systems – Lane Keep Assist / Adaptive Cruise Control
 
-## System Overview 
+## Deployment and Development Process
 
-The overview of the system is depicted in **Figure 1**.
-![Figure 1](Docs/Figure1.png?raw=true "Figure 1")
-<p align="center">
-  <i><b>Figure 1 - System Overview Diagram</b></i>
-</p>    
+In order to remotely develop and deploy software to the Raspberry Pi, I first
+needed to establish a secure link between my development machine and the
+Pi. This was achievable by enabling and securing ssh on the target platform
+by changing the port from 22 to 443, disabling password authentication
+and enabling public private key authentication based on certificates.
 
-**Car Controller subsystem** is responsible with controlling and collecting the data from all sensor modules through means such as *remote method calling*, making use of the **Event Bus Architecture** implemented by **DBus**. This module also serves as an interface to the services provided by the system for the Remote Control subsystem.    
-**Speed Controller extension** provides a set of services in order to control the DC motor resposible with the forward-backward motion of the car.    
-**Steering Controller extension** provides a set of services in order to control the DC motor responsible with steering the wheels of the car.    
-**Ultrasonic Sensor extension** contains the low-level driver responsible with the *HC-SR04* sensor. The module provides cyclic readings of the distance to any obstacle in front of the vehicle, accesible through the service registered on DBus.    
-**Camera extension** is the service responsible with capturing the stream from the RPi Camera v2 and forwarding it to the network, where it can be accesible to the *Mobile controller & consumer*.    
-**GPS extension** represents the driver of the *VN2828U7G5LF* GPS sensor. The module provides a service through which the current latitude, longitude and altitude can be retrieved.    
-**Remote Control subsystem** is the interface through which the embedded system is controlled. Its implementation consists of a Django Webserver through which internet connection and routing is performed.    
-**Mobile controller & consumer** represents the *Android* application used to control the vehicle, view various metrics from the sensors (e.g. speed, distance), and display the video stream transmitted by the embedded subsystem.    
-**OTA Configuration & Upgrade subsystem** is the module making the over-the-air configurations and upgrades to the sensors/the car controller subsystem possible. The subsystem provides an interface for an external user to send upgrade packets to the embedded system in a secure way - user must be authenticated and the system must be connected to a Wi-Fi Network.    
-**Web interface** contains the *mainenance console* togheder with the update & configure panel used by an external administrator to modify various modules of the embedded system remotely.    
+![Deployment Process](https://github.com/vnemes/PiCar/blob/Diploma-Thesis/Docs/deployment.jpg)
 
-## Hardware Design
+Apart from having the ability to remotely configure the Raspberry Pi even
+from other networks (after opening the port on my router at home and setting
+up dynamic DNS from my network provider), enabling ssh has also allowed the
+use of JetBrains’ IntelliJ IDEA IDE for deploying (using SFTP), running and
+debugging the software directly on the target platform’s Python interpreter.
 
-The hardware circuit design is depicted in **Figure 2**.
-![Figure 2](Docs/Figure2.PNG?raw=true "Figure 2")
-<p align="center">
-  <i><b>Figure 2 - Hardware Diagram</b></i>
-</p>
+## Backend: Embedded Platform
 
-The real assembly of the system is shown in **Figure 3**.
-![Figure 3](Docs/Figure3.png?raw=true "Figure 3")
-<p align="center">
-  <i><b>Figure 3 - Real Assembly</b></i>
-</p>
- 
-## WebServer
-The WebServer architecture is depicted in **Figure 4**.
-![Figure 4](Docs/Figure4.png?raw=true "Figure 4")
-<p align="center">
-  <i><b>Figure 4 - WebServer Architecture</b></i>
-</p>
+![Backend Architecture](https://github.com/vnemes/PiCar/blob/Diploma-Thesis/Docs/Architecture-Backend.png)
 
-The web server acts like a completely isolated module by itself. I donsen't have any dependecies on the sensor and accuator services. The communication of the web server and other components is handled via D-BUS.
+- Pi Zero W – Tightly coupled, singletons
+- Pi 3B+ – Microservice architecture (RPyC)
+- Flask WebServer gateway – 4 Gunicorn workers
+- Inter-service communication based on UDP RPC
+- Service Registration and Discovery
+- Steering & Acceleration controllers
+  - H bridge / servo software pwm
+- Ultrasonic sensor driver & filter 
+  - median filter of size 5
+- GPS sensor driver
+  - NMEA serial string parsing
+- Jevois smart vision driver
 
-Gunicorn and Nginx's lifecycle is controlled by systemd. 
-To start them the following commands are used:
+## FrontEnd: Android Application 
 
-```bash
-systemctl start gunicorn
-systemctl start nginx
-``` 
-The systemd configuration file for Gunicorn is found in the `scripts` directory, under the name `gunicorn.service`
+- Connected session manager
+  - Configurable persistent connection data classes
+- Handling and acceleration control
+  - 2 axis single joystick / 2 1 axis joysticks
+- Distance monitoring 
+  - Cyclic ultrasonic sensor endpoint readings
+- Live Video Feed / Map Overlay
+  - H264 stream or MapFragment
+- Persistent preferences 
 
-The Nginx website configuration can be found in `scripts/ccserversite`.
 
-In case of redeployment please refer to this guide: [Nginx & Gunicorn Deployment Guide](https://www.digitalocean.com/community/tutorials/how-to-set-up-django-with-postgres-nginx-and-gunicorn-on-ubuntu-14-04)
+The Android Application acts as the main client of the system, providing
+control over connection sessions, vehicle handling and acceleration, distance
+monitoring, map or video feed overlay and connection configurations management.
+It is compatible with both the low-power and the high performance
+platform, and it can also control the electric platform using Bluetooth Low
+Energy.
 
-### Web Server Internals
+The application consists of 3 activities, namely ConnectActivity, Controller-
+Activity and SettingsActivity that are written in Java and Kotlin.
 
-Gunicorn works by having master process that manages all the workers, the master doesn't know anything about the incomming requests and all the responses are handled by the workers.
+## Main Menu (ConnectActivity)
 
-A web worker could be of multiple types like async, sync, tornado and asyncio. In this case, the web server uses synchronous workers, which can handle only one request at a time. In order to serve thousands of requests per seccond Gunicorn needs only 4-12 workers.
+This activity provides the management of connection configurations and
+allows the user to connect to the embedded platform through different connection
+types described later in this sub-section.
 
-### D-BUS: Short Introduction
+![ConnectActivity](https://github.com/vnemes/PiCar/blob/Diploma-Thesis/Docs/connectactivity.jpg)
 
-D-BUS is a form of inter-process communicationa and it's based on the socket mechanism that is found in UNIX-like systems.
+When the user decides to connect to the selected option, ControllerActivity
+is started and the selected configuration data is bundled with the activity start
+Intent in order to establish a connection using the IP, SSID or BLE UUID of the
+target device. The following figure describes the simplified flow for connecting
+to the target plaform using REST calls:
 
-There are two busses the system bus and the session bus. The system bus is dedicated to system services and the session bus provides desktop services to user applications.
+![ConnectActivity](https://github.com/vnemes/PiCar/blob/Diploma-Thesis/Docs/sequence-android-enable.png)
 
-A D-BUS service contains the object, which implements an interface. 
+### Remote Controller (ControllerActivity)
 
-* The service is a collection of objects which provide a specific set of features, it is identified by a name that is similar to the Java package naming convention, `pi.sensor`.
-* The object can be dynamically created or removed and it is identified by an unique object path like `/pi/sensor/ultrasonic`.
-* The interface extends the service name to something like `pi.sensor.Ultrasonic` and contains properties, methods and signals.
+This activity is launched in an attempt to establish a connection to the plat-form.  After the connection has succeeded, the application provides the userone or two joysticks (based on preferences) to control the speed and steering of the vehicle.
 
-The security of D-BUS is handled by policy files.
 
-### Over the Air Update
+![ControlActivity](https://github.com/vnemes/PiCar/blob/Diploma-Thesis/Docs/controlactivity.jpg)
 
-Over the air updates are supported and handled by the web interface at the endpoint /administration/ota.
-In order to access the endpoint the user must first login at /admin, after that the user will be indentified by a 
-session cookie that is set automatically after the login.
+This activity also provides a video overlay with the live video feed from theplatform’s on-board camera or a map with the global position of the vehicle, acquired using its GPS sensor. This activity ensures that the connection tothe vehicle is stopped while the app is put in background and re-connectedwhen the app is resumed in order to save the embedded platform’s batteryand prevent useless data traffic.
 
-The user can then proceed to /administration/ota and update the desired services. In order to tighten security, only
-a few whitelisted services can be updated, otherwise every file on the system could be updated with OTA, other services
-can be added on request.
+### Settings (SettingsActivity)
 
-### References:
-* https://pinout.xyz/
-* https://www.modmypi.com/blog/hc-sr04-ultrasonic-range-sensor-on-the-raspberry-pi
-* http://docs.gunicorn.org/en/stable/deploy.html
-* https://developer.android.com/training/volley/
-* https://code.tutsplus.com/tutorials/streaming-video-in-android-apps--cms-19888
-* https://tutorials-raspberrypi.com/measuring-rotation-and-acceleration-raspberry-pi/
-* https://pypi.org/project/smbus-cffi/0.5.1/
-* https://www.linuxjournal.com/article/10455
-* https://www.raspberrypi.org/documentation/configuration/wireless/access-point.md#internet-sharing
-* https://github.com/ShawnBaker/RPiCameraViewer
-* https://stackoverflow.com/questions/6146131/python-gps-module-reading-latest-gps-data
-* https://tutorials-raspberrypi.com/measuring-rotation-and-acceleration-raspberry-pi/
+The SettingsActivity can be accessed from any screen of the application,and it allows the personalization of various UI preferences, embedded platformparameters or enabling/disabling the driver assistance modules.The list of preferences is defined in thepreferences.xmlresource file, andthe change of their value can be detected after leaving the SettingsActivity byquerying the shared preferences manager for the respective key value pairs.
 
+![SettingsActivity](https://github.com/vnemes/PiCar/blob/Diploma-Thesis/Docs/settingsactivity.jpg)
+
+### Android Wear Module
+
+The Android application provides a wear OS module that displays the con-nection status to the embedded platform and allows the control of its speedand steering using a joystick.
+
+![WearModule](https://github.com/vnemes/PiCar/blob/Diploma-Thesis/Docs/wear.jpg)
+
+The communication between the wear module and the application is per-formed through a messaging protocol. Its principle of operation includes registering the appropriate message receivers and broadcasters to a previouslydefined channel that abstracts the bluetooth connection between the deviceand the wearable.
+
+## Driver Assistance Systems
+
+### Adaptive Cruise Control
+
+The Adaptive Cruise Control module ensures that the electric vehicle maintains a constant distance to the vehicle (obstacle) in front by comparing thevalues retrieved from the ultrasonic sensor to the target distance and applyingacceleration or braking pre-emptively.
+
+The module retrieves the filtered distance values from the Ultrasonic SensorService with a frequency of 33 Hertz, the same frequency the sensor uses for data acquisition. The values are then fed into a PID Controller which has as output the target acceleration values to be sent to the Speed Driver of the Platform.
+
+![AdaptiveCruiseControl](https://github.com/vnemes/PiCar/blob/Diploma-Thesis/Docs/accflow.png)
+
+The  target  distance  to  the  next  vehicle  is  hard-coded  to  50  centimetersbecause it is directly related to the PID controller’s parameters which havebeen computed using an empirical method:
+- A __Proportional__ gain of -0.1 was identified to result in acceleration out-put values that keep the vehicle in a +/- 5 centimeters range of the target distance, proving stable enough to only cause minor oscillations atsteady-state.
+- Setting the __Derivative__ gain of -0.015 ensured that the vehicle reacts pro-portionally to both small and big changes in distance, thus reducing the oscillations and improving its dynamic response.
+- The __Integrative__ gain was set to 0 because the resulting +/- 5 cm rangewas satisfactory enough for the application, and even small values wouldcause the acceleration values to drift outside the steady state.The  values  outputted  by  the  PID  are  in  the  closed  interval  [-100,  +100]and represent the estimated acceleration percentages to be applied in order tobring the vehicle closer to the target distance.  The Python implementation ofthe PID controller is achieved through the use of Martin Lundberg’s simple_pidlibrary which is MIT licensed.
+
+### Lane Keep Assist
+
+- Jevois Smart Vision camera
+- Road boundary estimation
+- Vanishing point computation
+- Algorithm output triggers vehicle steering
+
+![AdaptiveCruiseControl](https://github.com/vnemes/PiCar/blob/Diploma-Thesis/Docs/lka6.png)
+
+The Lane Keep Assist algorithm uses visual cues from the camera in orderto estimate thevanishing pointof the road, which is sent to the steering driverto command the general direction of the vehicle in order to keep it centered inits lane.  The algorithm relies on the road surface having clear markings forboth sides of the lane, preferably using a shade that contrasts the base colorof the road.
+
+## Hardware Overview
+
+![Hardware Overview](https://github.com/vnemes/PiCar/blob/Diploma-Thesis/Docs/hw-design.png)
+
+- Raspberry Pi 
+  - RPi 3B+ / RPi Zero W
+-Brushed DC Motor - acceleration
+  - H Bridge (20kHz PWM)
+- Servomotor – steering
+  - 50 Hz, 1-2 ms pulses
+- Ultrasonic Sensor – distance measurement
+  - Sample time 33 Hz
+- GPS Sensor
+
+
+
+The following section is an excerpt from the diploma thesis document:
+## Abstract 
+
+During recent years, electrification, connectivity and Driver Assistance Systems
+have become the topics of most interest in the automotive domain with
+the goal of reducing carbon emissions and increasing passenger safety. While
+the task of autonomous driving remains an open challenge due to its realworld
+implications and real-time constraints, attempts have been made towards
+implementing systems and algorithms that currently achieve a confident
+level of autonomy in a limited set of circumstances.    
+
+This thesis aims at presenting a proof-of-concept remote-controlled electric
+vehicle that provides a number of basic autonomous driving features. The
+system to be described allows an Android consumer to control the speed and
+direction of the vehicle, display a live video feed from the on-board camera,
+view the exact location of the vehicle via its GPS sensor and on-demand driver
+assistance features such as Collision Avoidance, Adaptive Cruise Control and
+Lane Keep Assist.    
+
+The hardware platform of choice is the Raspberry Pi which, along with its
+Linux distribution - Raspbian, allowed for fine-grained customization capabilities
+regarding the orchestration of services, hardware interfaces and available
+libraries. Coupled with the use of Python as the programming language of
+choice for the embedded application, these design considerations allowed for
+fast development cycles during prototyping and testing.

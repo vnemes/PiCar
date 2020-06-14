@@ -35,4 +35,16 @@ public class SpeedControllerHTTP extends SpeedController {
             e.printStackTrace();
         }
     }
+
+    @Override
+    protected void requestSetSpeedLimit(int maxSpeed) {
+        try {
+            jsonObject.put("limit",maxSpeed);
+            Log.d(getClass().getSimpleName(),jsonObject.toString());
+            request.jsonRequest(Request.Method.POST,request.getIP() + context.getString(R.string.api_speed_endpoint)
+                    + "/limit",jsonObject,null,null);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
 }
