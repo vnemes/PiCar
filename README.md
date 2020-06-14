@@ -15,8 +15,8 @@
 - Driver Assistance Systems – Lane Keep Assist / Adaptive Cruise Control
 
 <p float="left">
-  <img src="https://github.com/vnemes/PiCar/blob/master/Docs/acc_cropped.gif" width="338" />
-  <img src="https://github.com/vnemes/PiCar/blob/master/Docs/lka_short.gif" width="562" /> 
+  <img src="https://github.com/vnemes/PiCar/blob/master/Docs/acc_cropped.gif" width="337" />
+  <img src="https://github.com/vnemes/PiCar/blob/master/Docs/lka_short.gif" width="561" /> 
 </p>
 
 Technologies used:
